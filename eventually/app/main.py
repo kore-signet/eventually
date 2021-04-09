@@ -88,13 +88,25 @@ def parse_event(res):
     event['type'] = event['etype']
     del event['etype']
 
+    event['day'] = try_int(event['day'])
+    event['nuts'] = try_int(event['nuts'])
+    event['phase'] = try_int(event['phase'])
+    event['type'] = try_int(event['type'])
+    event['category'] = try_int(event['category'])
+
     return event
 
 @app.route('/events')
 async def events():
     def format_tags(field_name,field_vals):
-        tags = map(b64encode,field_vals)
-        return f"@{field_name}:{{{'|'.join(tags)}}}"
+        split_by_or = field_vals.split(',')
+        split_by_and = field_vals.split('_')
+        if len(split_by_and) > len(split_by_or):
+            tags = map(b64encode,split_by_and)
+            return " ".join([f"@{field_name}:{{{t}}}" for t in tags])
+        else:
+            tags = map(b64encode,split_by_or)
+            return f"@{field_name}:{{{'|'.join(tags)}}}"
 
     def format_time_range(field: str, before: Optional[int], after: Optional[int]):
         return f"@{field}:[{after if after else '-inf'} {before if before else 'inf'}]"
@@ -125,9 +137,9 @@ async def events():
     for k, v in args.items():
         if k in tag_fields:
             if k == 'type':
-                query.append(format_tags('etype',v.split(',')))
+                query.append(format_tags('etype',v))
             else:
-                query.append(format_tags(k,v.split(',')))
+                query.append(format_tags(k,v))
         elif k.startswith('metadata'):
             field = k.split('.')[1:]
             values = v.split(',')
@@ -136,6 +148,8 @@ async def events():
 
     if len(query) < 1:
         query = ["*"]
+
+    print(query)
 
     sort_by = args.pop('sortby','timestamp')
     if sort_by == 'timestamp':
@@ -154,7 +168,7 @@ async def events():
     for _, e in pairs(res[1:]):
         json_res.append(parse_event(e))
 
-    return json.dumps(json_res)
+    return json.dumps(json_res), { 'Content-Type': 'application/json'}
 
 @app.route('/sse')
 async def live_feed():
