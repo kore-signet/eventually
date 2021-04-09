@@ -40,7 +40,7 @@ class Monitor():
                         id = e['id']
                         logging.debug(f"Indexing event {id}")
                         processed = process_event(e,self.player_cache,self.team_cache)
-                        await self.redis.hmset_dict(id,processed)
+                        await self.redis.hmset_dict(f"event:{id}",processed)
         except: # i'm sure this is Good Practice
             pass
 

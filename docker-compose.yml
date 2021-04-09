@@ -9,7 +9,7 @@ services:
       - ./redis.conf:/redis.conf
   consumer:
     image: allieee/eventually:consumer
-    command: python3 monitor.py --url redis://redis
+    command: python3 monitor.py --log DEBUG --url redis://redis
   api:
     image: allieee/eventually:api
     ports:

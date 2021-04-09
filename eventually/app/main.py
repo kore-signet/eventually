@@ -30,6 +30,10 @@ def b64decode(s):
 # phase_max=int
 # day_min=int
 # day_max=int
+# sortby=field
+# offset=int # result offset, so if you get 100 and want 100 more, set this to 100
+# limit=int # how many results to get; defaults to 50
+
 app = Quart(__name__)
 app.config.from_file("eventually.toml",toml.load)
 redis = EventuallyRedis(app,app.config['DATABASE_URL'])
@@ -130,8 +134,23 @@ async def events():
             for val in values:
                 query.append(f"@metadata:{{{b64encode('?'.join(field + [val]))}}}")
 
+    if len(query) < 1:
+        query = ["*"]
+
+    sort_by = args.pop('sortby','timestamp')
+    if sort_by == 'timestamp':
+        sort_by = 'etimestamp'
+    elif sort_by == 'type':
+        sort_by = 'etype'
+
+    sort_order = args.pop('sortorder','desc')
+    sort_order = "ASC" if sort_order.upper() == "ASC" else "DESC"
+
+    offset = args.pop('offset',0)
+    limit = args.pop('limit',50)
+
     json_res = []
-    res = await redis.run("FT.SEARCH", "eventIndex", " ".join(query))
+    res = await redis.run("FT.SEARCH", "eventIndex"," " + " ".join(query),  "SORTBY", sort_by, sort_order, 'LIMIT', offset, limit)
     for _, e in pairs(res[1:]):
         json_res.append(parse_event(e))
 
