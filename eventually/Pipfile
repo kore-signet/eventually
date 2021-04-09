@@ -6,8 +6,8 @@ name = "pypi"
 [packages]
 aioredis = "*"
 quart = "*"
-pybase64 = "*"
 unpaddedbase64 = "*"
+toml = "*"
 
 [dev-packages]
 

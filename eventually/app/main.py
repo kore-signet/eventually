@@ -3,7 +3,8 @@ from unpaddedbase64 import encode_base64, decode_base64
 from typing import Optional
 from db import EventuallyRedis
 from datetime import datetime
-import pprint
+import json
+import toml
 
 def b64encode(s):
     return encode_base64(str(s).encode("utf8"),urlsafe=True) # pain
@@ -12,7 +13,7 @@ def b64decode(s):
     return decode_base64(s).decode("utf8")
 
 # ids=[uuid]
-# playerName=[str]
+# playerNames=[str]
 # playerTags=[uuid]
 # teamTags=[uuid]
 # teamNames=[uuid]
@@ -30,7 +31,8 @@ def b64decode(s):
 # day_min=int
 # day_max=int
 app = Quart(__name__)
-redis = EventuallyRedis(app,'redis://localhost')
+app.config.from_file("eventually.toml",toml.load)
+redis = EventuallyRedis(app,app.config['DATABASE_URL'])
 
 def pairs(iterable):
     return zip(*[iter(iterable)]*2)
@@ -113,7 +115,7 @@ async def events():
     if phase_min or phase_max:
         query.append(format_range('phase',phase_min,phase_max))
 
-    if day_minx or day_max:
+    if day_min or day_max:
         query.append(format_range('day',day_min,day_max))
 
     for k, v in args.items():
@@ -128,13 +130,20 @@ async def events():
             for val in values:
                 query.append(f"@metadata:{{{b64encode('?'.join(field + [val]))}}}")
 
-    pretty_res = []
-    print(" ".join(query))
+    json_res = []
     res = await redis.run("FT.SEARCH", "eventIndex", " ".join(query))
-    print(res[0])
     for _, e in pairs(res[1:]):
-        pretty_res.append(parse_event(e))
+        json_res.append(parse_event(e))
 
-    return pprint.pformat(pretty_res)
+    return json.dumps(json_res)
 
-app.run(debug=True)
+@app.route('/sse')
+async def live_feed():
+    return redis.subscribe(), {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Transfer-Encoding': 'chunked'
+    }
+
+if __name__ == "__main__":
+    app.run(debug=True)

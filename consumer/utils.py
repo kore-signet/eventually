@@ -57,6 +57,8 @@ def process_event(event, player_cache, team_cache):
             else:
                 flattened_meta.append(b64encode(f'{k}?{v}')) # it's just a normal field; append a tag for it
 
+    event['etype'] = event['type']
+    event.pop('type')
     event['metadata'] = '|'.join(flattened_meta)
     event['etimestamp'] = int(dateparse(event['created']).timestamp())
     event.pop('created')
