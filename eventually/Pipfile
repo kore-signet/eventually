@@ -9,6 +9,7 @@ quart = "*"
 unpaddedbase64 = "*"
 toml = "*"
 quart-cors = "*"
+ujson = "*"
 
 [dev-packages]
 

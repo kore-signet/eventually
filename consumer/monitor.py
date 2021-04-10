@@ -1,4 +1,4 @@
-import aiohttp, aioredis, logging, asyncio, argparse
+import aiohttp, aioredis, logging, asyncio, argparse, ujson
 from utils import *
 
 # cronch
@@ -34,7 +34,7 @@ class Monitor():
                     logging.info(f"Publishing {event_amount} new events!")
 
                     self.latest = events[-1]['created']
-                    await self.redis.publish_json('feed',events)
+                    await self.redis.publish('feed',ujson.dumps({'data':events},ensure_ascii=False).encode('utf8'))
 
                     for e in events:
                         id = e['id']

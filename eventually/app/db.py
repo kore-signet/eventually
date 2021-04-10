@@ -23,8 +23,8 @@ class EventuallyRedis:
 
     async def subscribe(self) -> AsyncGenerator:
         (subscription,) = await self._pool.subscribe('feed')
-        while await subscription.wait_message():
-            yield json.dumps({'event':'message','data': await subscription.get_json()}).encode("utf8")
+        async for msg in subscription.iter():
+            yield msg
 
     async def run(self,*args):
         return await self._pool.execute(*args)

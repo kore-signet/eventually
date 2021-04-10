@@ -4,8 +4,7 @@ from unpaddedbase64 import encode_base64, decode_base64
 from typing import Optional
 from db import EventuallyRedis
 from datetime import datetime
-import json
-import toml
+import ujson, toml
 
 def b64encode(s):
     return encode_base64(str(s).encode("utf8"),urlsafe=True) # pain
@@ -159,8 +158,6 @@ async def events():
     if len(query) < 1:
         query = ["*"]
 
-    print(query)
-
     sort_by = args.pop('sortby','timestamp')
     if sort_by == 'timestamp':
         sort_by = 'etimestamp'
@@ -178,7 +175,7 @@ async def events():
     for _, e in pairs(res[1:]):
         json_res.append(parse_event(e))
 
-    return json.dumps(json_res), { 'Content-Type': 'application/json'}
+    return ujson.dumps(json_res,ensure_ascii=False), { 'Content-Type': 'application/json'}
 
 @app.route('/sse')
 @route_cors(allow_methods=["GET"],allow_origin=["*"])

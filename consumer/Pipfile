@@ -9,6 +9,7 @@ aioredis = "*"
 blaseball-mike = "*"
 dateparser = "*"
 unpaddedbase64 = "*"
+ujson = "*"
 
 [dev-packages]
 redis = "*"
