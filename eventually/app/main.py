@@ -31,6 +31,7 @@ def b64decode(s):
 # day_min=int
 # day_max=int
 # sortby=field
+# description=str
 # offset=int # result offset, so if you get 100 and want 100 more, set this to 100
 # limit=int # how many results to get; defaults to 50
 
@@ -88,11 +89,11 @@ def parse_event(res):
     event['type'] = event['etype']
     del event['etype']
 
-    event['day'] = try_int(event['day'])
-    event['nuts'] = try_int(event['nuts'])
-    event['phase'] = try_int(event['phase'])
-    event['type'] = try_int(event['type'])
-    event['category'] = try_int(event['category'])
+    event['day'] = try_int(event.get('day',''))
+    event['nuts'] = try_int(event.get('nuts',''))
+    event['phase'] = try_int(event.get('phase',''))
+    event['type'] = try_int(event.get('type',''))
+    event['category'] = try_int(event.get('category',''))
 
     return event
 
@@ -114,6 +115,9 @@ async def events():
     def format_range(field: str, min: Optional[int], max: Optional[int]):
         return f"@{field}:[{min if min else '-inf'} {max if max else 'inf'}]"
 
+    def format_str_field(field: str, query: str):
+        return f"@{field}:({query})"
+
     args = dict(request.args)
 
     before = args.pop('before', None)
@@ -122,8 +126,12 @@ async def events():
     phase_max = args.pop('phase_max', None)
     day_min = args.pop('day_min', None)
     day_max = args.pop('day_max', None)
+    description = args.pop('description', None)
 
     query = []
+
+    if description:
+        query.append(format_str_field('description',description))
 
     if before or after:
         query.append(format_time_range('etimestamp',before,after))
