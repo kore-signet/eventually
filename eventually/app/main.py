@@ -1,4 +1,5 @@
 from quart import Quart, request
+from quart_cors import route_cors
 from unpaddedbase64 import encode_base64, decode_base64
 from typing import Optional
 from db import EventuallyRedis
@@ -98,6 +99,7 @@ def parse_event(res):
     return event
 
 @app.route('/events')
+@route_cors(allow_methods=["GET"],allow_origin=["*"])
 async def events():
     def format_tags(field_name,field_vals):
         split_by_or = field_vals.split(',')
@@ -179,6 +181,7 @@ async def events():
     return json.dumps(json_res), { 'Content-Type': 'application/json'}
 
 @app.route('/sse')
+@route_cors(allow_methods=["GET"],allow_origin=["*"])
 async def live_feed():
     return redis.subscribe(), {
         'Content-Type': 'text/event-stream',

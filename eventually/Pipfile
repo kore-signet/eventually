@@ -8,6 +8,7 @@ aioredis = "*"
 quart = "*"
 unpaddedbase64 = "*"
 toml = "*"
+quart-cors = "*"
 
 [dev-packages]
 
