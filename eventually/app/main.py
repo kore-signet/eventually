@@ -147,6 +147,8 @@ async def events():
         if k in tag_fields:
             if k == 'type':
                 query.append(format_tags('etype',v,base64=False))
+            elif k == 'ids':
+                query.append(format_tags('id',v))
             else:
                 query.append(format_tags(k,v))
         elif k.startswith('metadata'):
