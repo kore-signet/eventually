@@ -100,14 +100,14 @@ def parse_event(res):
 @app.route('/events')
 @route_cors(allow_methods=["GET"],allow_origin=["*"])
 async def events():
-    def format_tags(field_name,field_vals):
+    def format_tags(field_name,field_vals, base64=True):
         split_by_or = field_vals.split(',')
         split_by_and = field_vals.split('_')
         if len(split_by_and) > len(split_by_or):
-            tags = map(b64encode,split_by_and)
+            tags = map(b64encode,split_by_and) if base64 else split_by_and
             return " ".join([f"@{field_name}:{{{t}}}" for t in tags])
         else:
-            tags = map(b64encode,split_by_or)
+            tags = map(b64encode,split_by_or) if base64 else split_by_or
             return f"@{field_name}:{{{'|'.join(tags)}}}"
 
     def format_time_range(field: str, before: Optional[int], after: Optional[int]):
@@ -146,7 +146,7 @@ async def events():
     for k, v in args.items():
         if k in tag_fields:
             if k == 'type':
-                query.append(format_tags('etype',v))
+                query.append(format_tags('etype',v,base64=False))
             else:
                 query.append(format_tags(k,v))
         elif k.startswith('metadata'):
