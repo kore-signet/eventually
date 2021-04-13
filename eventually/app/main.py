@@ -49,7 +49,7 @@ def try_int(s):
         val = s
     return val
 
-tag_fields = ["ids","season","tournament","category","type","gameTags","teamNames","teamTags","playerTags","playerNames"]
+tag_fields = ["ids","seasons","tournament","category","type","gameTags","teamNames","teamTags","playerTags","playerNames"]
 base64_tag_fields = ["gameTags","teamNames","teamTags","playerTags","playerNames"]
 
 def parse_event(res):
@@ -149,6 +149,8 @@ async def events():
                 query.append(format_tags('etype',v,base64=False))
             elif k == 'ids':
                 query.append(format_tags('id',v))
+            elif k == 'seasons':
+                query.append(format_tags('season',v,base64=False))
             else:
                 query.append(format_tags(k,v))
         elif k.startswith('metadata'):
