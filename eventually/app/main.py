@@ -70,7 +70,7 @@ def parse_event(res):
                     if fields[0] not in event['metadata']:
                         event['metadata'][fields[0]] = {}
                     event['metadata'][fields[0]][fields[1]] = fields[2] # metadata field format = field.subfield.value, so this is basically event['metadata'][field][subfield] = value
-                else:
+                elif len(fields) == 2:
                     if fields[0] not in event['metadata']:
                         event['metadata'][fields[0]] = []
                     event['metadata'][fields[0]].append(fields[1]) # metadata field = field.value, so this is is event['metadata'][field] = value. we use an array because we can't be sure if it's not one at this point in parsing lol
