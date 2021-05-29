@@ -36,12 +36,12 @@ paths:
           description: Filter by event UUIDs
         - schema:
             type: string
+            example: 1f159bab-923a-4811-b6fa-02bfde50925a_and_d35ccee1-9559-49a1-aaa4-7809f7b5c46e
           in: query
           name: playerTags
           description: Filter by player UUIDs
         - schema:
             type: string
-            example: 1f159bab-923a-4811-b6fa-02bfde50925a_and_d35ccee1-9559-49a1-aaa4-7809f7b5c46e
           in: query
           name: teamTags
           description: Filter by team UUIDs
