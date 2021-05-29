@@ -31,36 +31,50 @@ paths:
       parameters:
         - schema:
             type: array
+            items:
+              type: string
           in: query
           name: id
           description: Filter by event UUIDs
         - schema:
             type: array
+            items:
+              type: string
           in: query
           name: playerTags
           description: Filter by player UUIDs
         - schema:
             type: array
+            items:
+              type: string
           in: query
           name: teamTags
           description: Filter by team UUIDs
         - schema:
             type: array
+            items:
+              type: string 
           in: query
           name: gameTags
           description: Filter by game UUIDs
         - schema:
             type: array
+            items:
+              type: string
           in: query
           name: type
           description: Filter by event types
         - schema:
-            type: integer
+            oneOf:
+              - type: string
+              - type: integer
           in: query
           name: before
           description: 'Filter to events before [UNIX timestamp or ISO 8601 UTC date-time string]'
         - schema:
-            type: integer
+            oneOf:
+              - type: string
+              - type: integer
           in: query
           name: after
           description: 'Filter to events after [UNIX timestamp or ISO 8601 UTC date-time string]'
@@ -85,12 +99,17 @@ paths:
           name: day_max
           description: Filter to events from day < day_max
         - schema:
-            type: string
+            type: array
+            items:
+              type: string
           in: query
           name: 'metadata.[field]'
           description: 'Filter by value of metadata field '
+          example: metadata.being=1_or_2
         - schema:
-            type: string
+            type: array
+            items:
+              type: string
           in: query
           name: 'metadata.[field].[subfield]'
           description: Filter by value of a metadata field's subfield; so on
