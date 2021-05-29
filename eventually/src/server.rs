@@ -7,6 +7,7 @@ use std::io::prelude::*;
 use serde_json::Value as JSONValue;
 use serde_json::json;
 use chrono::prelude::*;
+use actix_cors::Cors;
 
 #[get("/events")]
 async fn search(mut req: web::Query<JSONValue>, db_pool: web::Data<Pool>, schema: web::Data<Schema>) -> Result<HttpResponse,Error> {
@@ -39,9 +40,14 @@ async fn main() -> std::io::Result<()> {
     let schema: Schema = serde_yaml::from_str(&s).unwrap();
 
     let server = HttpServer::new(move || {
+        let cors = Cors::default()
+                    .allow_any_origin()
+                    .allowed_methods(vec!["GET"]);
+
         App::new()
             .data(pool.clone())
             .data(schema.clone())
+            .wrap(cors)
             .service(search)
     })
     .bind("0.0.0.0:4445".to_string())?
