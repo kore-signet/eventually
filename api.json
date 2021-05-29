@@ -1,0 +1,352 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "eventually v2",
+    "version": "2.0",
+    "description": "eventually: an api wraps the blaseball feed into a searchable index and event stream    ",
+    "contact": {
+      "name": "Allie Signet M.",
+      "url": "https://github.com/alisww/eventually",
+      "email": "allie@sibr.dev"
+    },
+    "license": {
+      "name": "AGPLv3"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.sibr.dev/eventually/v2",
+      "description": "@ SIBR"
+    }
+  ],
+  "paths": {
+    "/events": {
+      "get": {
+        "summary": "/events",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "description": "metadata has a *ton* of possible fields; a sort-of-spec of them can be found [here](https://gist.github.com/alisww/36df4b261c0aa657b88fad56343b3cfa)",
+                    "type": "object",
+                    "title": "a feed event",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "playerTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "teamTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "gameTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "season": {
+                        "type": "integer"
+                      },
+                      "tournament": {
+                        "type": "integer"
+                      },
+                      "day": {
+                        "type": "integer"
+                      },
+                      "phase": {
+                        "type": "integer"
+                      },
+                      "category": {
+                        "type": "integer"
+                      },
+                      "description": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "nuts": {
+                        "type": "integer"
+                      },
+                      "created": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "type": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "metadata": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "playerTags",
+                      "teamTags",
+                      "gameTags",
+                      "season",
+                      "tournament",
+                      "day",
+                      "phase",
+                      "category",
+                      "description",
+                      "nuts",
+                      "created",
+                      "type",
+                      "metadata"
+                    ]
+                  }
+                },
+                "examples": {}
+              }
+            }
+          }
+        },
+        "operationId": "events",
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "id",
+            "description": "Filter by event UUIDs"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "playerTags",
+            "description": "Filter by player UUIDs"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "teamTags",
+            "description": "Filter by team UUIDs"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "gameTags",
+            "description": "Filter by game UUIDs"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "type",
+            "description": "Filter by event types"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "before",
+            "description": "Filter to events before [UNIX timestamp or ISO 8601 UTC date-time string]"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "after",
+            "description": "Filter to events after [UNIX timestamp or ISO 8601 UTC date-time string]"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "phase_min",
+            "description": "Filter to events from phase > phase_min"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "phase_max",
+            "description": "Filter to events from phase < phase_max"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "day_min",
+            "description": "Filter to events from day > day_min"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "day_max",
+            "description": "Filter to events from day < day_max"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "metadata.[field]",
+            "description": "Filter by value of metadata field "
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "metadata.[field].[subfield]",
+            "description": "Filter by value of a metadata field's subfield; so on"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "offset",
+            "description": "Offsets results; so if you got 100 and want 100 more, set this to 100, etc (paging, basically)"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "description": "How many events to fetch"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "description",
+            "description": "Query the description of the event"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "season_min",
+            "description": "Events with season > season_min"
+          },
+          {
+            "schema": {
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "season_max",
+            "description": "Events with season < season_min"
+          }
+        ],
+        "description": "gets events from the index\n\n**note: you can specify multiple values for tag fields ('playerTags', 'teamTags', 'gameTags', 'type', 'category', 'metadata')**\nfor example; \"A\\_or\\_B\"; \"A\\_and\\_B\"; \"A\\_and\\_B\\_or\\_C\")\n"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Event": {
+        "description": "metadata has a *ton* of possible fields; a sort-of-spec of them can be found [here](https://gist.github.com/alisww/36df4b261c0aa657b88fad56343b3cfa)",
+        "type": "object",
+        "title": "a feed event",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "playerTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teamTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "gameTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "season": {
+            "type": "integer"
+          },
+          "tournament": {
+            "type": "integer"
+          },
+          "day": {
+            "type": "integer"
+          },
+          "phase": {
+            "type": "integer"
+          },
+          "category": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nuts": {
+            "type": "integer"
+          },
+          "created": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "playerTags",
+          "teamTags",
+          "gameTags",
+          "season",
+          "tournament",
+          "day",
+          "phase",
+          "category",
+          "description",
+          "nuts",
+          "created",
+          "type",
+          "metadata"
+        ]
+      }
+    },
+    "examples": {}
+  }
+}
