@@ -25,7 +25,63 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Event'
+                  description: 'metadata has a *ton* of possible fields; a sort-of-spec of them can be found [here](https://gist.github.com/alisww/36df4b261c0aa657b88fad56343b3cfa)'
+                  type: object
+                  title: a feed event
+                  properties:
+                    id:
+                      type: string
+                      minLength: 1
+                    playerTags:
+                      type: array
+                      items:
+                        type: string
+                    teamTags:
+                      type: array
+                      items:
+                        type: string
+                    gameTags:
+                      type: array
+                      items:
+                        type: string
+                    season:
+                      type: integer
+                    tournament:
+                      type: integer
+                    day:
+                      type: integer
+                    phase:
+                      type: integer
+                    category:
+                      type: integer
+                    description:
+                      type: string
+                      minLength: 1
+                    nuts:
+                      type: integer
+                    created:
+                      type: string
+                      minLength: 1
+                    type:
+                      type: string
+                      minLength: 1
+                    metadata:
+                      type: object
+                  required:
+                    - id
+                    - playerTags
+                    - teamTags
+                    - gameTags
+                    - season
+                    - tournament
+                    - day
+                    - phase
+                    - category
+                    - description
+                    - nuts
+                    - created
+                    - type
+                    - metadata
               examples: {}
       operationId: events
       parameters:
@@ -185,4 +241,3 @@ components:
         - type
         - metadata
   examples: {}
-
