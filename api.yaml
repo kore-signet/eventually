@@ -30,37 +30,28 @@ paths:
       operationId: events
       parameters:
         - schema:
-            type: array
-            items:
-              type: string
+            type: string
           in: query
           name: id
           description: Filter by event UUIDs
         - schema:
-            type: array
-            items:
-              type: string
+            type: string
           in: query
           name: playerTags
           description: Filter by player UUIDs
         - schema:
-            type: array
-            items:
-              type: string
+            type: string
+            example: 1f159bab-923a-4811-b6fa-02bfde50925a_and_d35ccee1-9559-49a1-aaa4-7809f7b5c46e
           in: query
           name: teamTags
           description: Filter by team UUIDs
         - schema:
-            type: array
-            items:
-              type: string 
+            type: string
           in: query
           name: gameTags
           description: Filter by game UUIDs
         - schema:
-            type: array
-            items:
-              type: string
+            type: string
           in: query
           name: type
           description: Filter by event types
@@ -99,17 +90,13 @@ paths:
           name: day_max
           description: Filter to events from day < day_max
         - schema:
-            type: array
-            items:
-              type: string
+            type:item
           in: query
           name: 'metadata.[field]'
           description: 'Filter by value of metadata field '
-          example: metadata.being=1_or_2
         - schema:
-            type: array
-            items:
-              type: string
+            type: string
+            example: metadata.being=1_or_2
           in: query
           name: 'metadata.[field].[subfield]'
           description: Filter by value of a metadata field's subfield; so on
