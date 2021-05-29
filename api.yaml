@@ -90,7 +90,7 @@ paths:
           name: day_max
           description: Filter to events from day < day_max
         - schema:
-            type:item
+            type: string
           in: query
           name: 'metadata.[field]'
           description: 'Filter by value of metadata field '
