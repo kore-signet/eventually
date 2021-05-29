@@ -1,5 +1,5 @@
 use compass::*;
-use actix_web::{get, web, App, HttpServer, HttpResponse, Error};
+use actix_web::{get, web, App, HttpServer, HttpResponse, Error, middleware::Logger};
 use deadpool_postgres::{Config, ManagerConfig, Client, Pool, RecyclingMethod };
 use tokio_postgres::{NoTls};
 use std::fs::File;
@@ -31,6 +31,8 @@ async fn search(mut req: web::Query<JSONValue>, db_pool: web::Data<Pool>, schema
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init();
+
     let cfg = Config::from_env("PG").unwrap();
     let pool = cfg.create_pool(NoTls).unwrap();
 
@@ -48,6 +50,7 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             .data(schema.clone())
             .wrap(cors)
+            .wrap(Logger::default())
             .service(search)
     })
     .bind("0.0.0.0:4445".to_string())?
