@@ -1,0 +1,70 @@
+default_order_by: created
+
+fields:
+  id:
+    name: "event id"
+    use_as_id: true
+
+  day:
+    name: "event day"
+    query:
+      type: Range
+      min: day_min
+      max: day_max
+
+  type:
+    name: "event type"
+
+  category:
+    name: "event category"
+
+  phase:
+    name: "event phase"
+    query:
+      type: Range
+      min: phase_min
+      max: phase_max
+
+  season:
+    name: "event season"
+    query:
+      type: Range
+      min: season_min
+      max: season_max
+
+  created:
+    name: "event timestamp"
+    converter:
+      from: DateTimeString
+      to: Timestamp
+    query:
+      type: Range
+      min: after
+      max: before
+
+  gameTags:
+    name: "event game tags"
+
+  playerTags:
+    name: "event player tags"
+
+  teamTags:
+    name: "event team tags"
+
+  tournament:
+    name: "event tournament"
+    query:
+      type: Range
+      min: tournament_min
+      max: tournament_max
+
+  description:
+    name: "event description"
+    query:
+      type: Fulltext
+      lang: english
+
+  metadata:
+    name: "event metadata"
+    query:
+      type: Nested

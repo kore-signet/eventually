@@ -1,0 +1,22 @@
+services:
+  rustventually:
+    image: rustventually
+    ports:
+      - "4445:4445"
+    environment:
+      - PG_HOST=eventually_db
+      - PG_USER=eventuallie
+      - PG_DBNAME=eventually
+      - PG_PASSWORD=
+
+  eventually_db:
+    image: eventually_postgres
+    environment:
+      - POSTGRES_USER=eventuallie
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=eventually
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
