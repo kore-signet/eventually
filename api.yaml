@@ -96,7 +96,6 @@ paths:
           description: 'Filter by value of metadata field '
         - schema:
             type: string
-            example: metadata.being=1_or_2
           in: query
           name: 'metadata.[field].[subfield]'
           description: Filter by value of a metadata field's subfield; so on
