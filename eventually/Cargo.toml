@@ -5,19 +5,38 @@ authors = ["Allie Signet <allie@cat-girl.gay>"]
 edition = "2018"
 
 [dependencies]
-compass = {git = "https://github.com/alisww/compass.git", branch = "main"}
-actix-web = "3"
-tokio-postgres = {version = "0.5.1", features = ["with-uuid-0_8", "with-serde_json-1"]}
-deadpool-postgres = "0.5.0"
-uuid = {version = "0.8", features = ["v4"]}
 serde_json = "1"
 serde_yaml = "0.8.17"
-serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "0.2", features = ["macros"] }
 chrono = "0.4"
-actix-cors = "0.5.4"
-log = "0.4.0"
-env_logger = "0.8.3"
+
+[dependencies.postgres]
+version = "0.19.1"
+features = ["with-serde_json-1","with-uuid-0_8"]
+
+[depencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.uuid]
+version = "0.8"
+features = ["v4"]
+
+[dependencies.compass]
+git = "https://github.com/alisww/compass"
+branch = "rocket"
+features = ["rocket_support"]
+
+[dependencies.rocket]
+git = "https://github.com/SergioBenitez/Rocket"
+branch = "master"
+features = ["json"]
+
+[dependencies.rocket_sync_db_pools]
+git = "https://github.com/SergioBenitez/Rocket"
+branch = "master"
+version = "0.1.0-dev"
+default-features = false
+features = ["postgres_pool"]
 
 [[bin]]
 name = "fill"
