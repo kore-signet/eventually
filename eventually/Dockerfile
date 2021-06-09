@@ -17,6 +17,7 @@ RUN cargo install --target x86_64-unknown-linux-musl --path .
 FROM debian:buster-slim
 COPY --from=build /usr/local/cargo/bin/server .
 COPY --from=build /usr/local/cargo/bin/fill .
+COPY --from=build /usr/local/cargo/bin/monitor .
 COPY schema.yaml .
 USER 1000
 CMD ["./server"]

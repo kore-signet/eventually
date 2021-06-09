@@ -6,8 +6,12 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 
+use postgres::error::Error as PGError;
+use postgres::fallible_iterator::FallibleIterator;
+
 use rocket::fairing::{self, Fairing};
 use rocket::{get, http::Header, launch, routes, Request, Response};
+use rocket::response::stream::{Event, EventStream};
 use rocket_sync_db_pools::{database, postgres};
 
 #[database("eventually")]
@@ -59,6 +63,25 @@ async fn search(
     db.run(move |mut c| json_search(&mut c, &schema, &req).map(|val| json!(val)))
         .await
 }
+//
+// #[get("/sse")]
+// async fn events(mut conn: CompassConn) -> Result<EventStream![],CompassError> {
+//     conn.run(move |c| {
+//         c.execute("LISTEN events",&[]).map_err(CompassError::PGError)?;
+//         Ok(EventStream! {
+//             let mut notification_iter = c.notifications().blocking_iter();
+//             loop {
+//                 if let Ok(event) = notification_iter.next() {
+//                     if let Some(e) = event {
+//                         yield Event::data(e.payload());
+//                     }
+//                 } else {
+//                     break;
+//                 }
+//             }
+//         })
+//     }).await
+// }
 
 #[launch]
 fn rocket() -> _ {
