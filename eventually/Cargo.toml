@@ -24,9 +24,8 @@ version = "0.8"
 features = ["v4"]
 
 [dependencies.compass]
-#git = "https://github.com/alisww/compass"
-#branch = "main"
-path = "../../compass"
+git = "https://github.com/alisww/compass"
+branch = "main"
 features = ["rocket_support"]
 
 [dependencies.rocket]
