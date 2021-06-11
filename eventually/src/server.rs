@@ -10,9 +10,31 @@ use postgres::error::Error as PGError;
 use postgres::fallible_iterator::FallibleIterator;
 
 use rocket::fairing::{self, Fairing};
-use rocket::{get, http::Header, launch, routes, Request, Response};
 use rocket::response::stream::{Event, EventStream};
+use rocket::{get, http::Header, http::Status, launch, routes, Request, Response};
 use rocket_sync_db_pools::{database, postgres};
+
+use rocket::request::{self, FromRequest, Outcome};
+
+#[derive(Debug, Clone)]
+struct Query(HashMap<String, String>);
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Query {
+    type Error = CompassError;
+    async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        match req.uri().query() {
+            Some(q) => {
+                let mut hash = HashMap::new();
+                for (k, v) in q.segments() {
+                    hash.insert(k.to_owned(), v.to_owned());
+                }
+                Outcome::Success(Query(hash))
+            }
+            None => Outcome::Failure((Status::BadRequest, CompassError::FieldNotFound)),
+        }
+    }
+}
 
 #[database("eventually")]
 struct CompassConn(postgres::Client);
@@ -34,12 +56,14 @@ impl Fairing for CORS {
     }
 }
 
-#[get("/events?<req..>")]
+#[get("/events")]
 async fn search(
-    mut req: HashMap<String, String>,
+    mut raw_req: Query,
     db: CompassConn,
     schema: Schema,
 ) -> Result<JSONValue, CompassError> {
+    let mut req = raw_req.0;
+
     if let Some(mut before) = req.get_mut("before") {
         if before.parse::<i64>().is_err() {
             *before = before

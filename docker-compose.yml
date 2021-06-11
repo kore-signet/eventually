@@ -4,10 +4,11 @@ services:
     ports:
       - "4445:4445"
     environment:
-      - PG_HOST=eventually_db
-      - PG_USER=eventuallie
-      - PG_DBNAME=eventually
-      - PG_PASSWORD=
+      - ROCKET_DATABASES={eventually={url=postgres://eventuallie@eventually_db/eventually}}
+      - RUST_LOG=debug
+      - ROCKET_LOG_LEVEL=debug
+      - ROCKET_ADDRESS=0.0.0.0
+      - ROCKET_PORT=4445
 
   eventually_db:
     image: eventually_postgres

@@ -146,7 +146,6 @@ dependencies = [
 [[package]]
 name = "compass"
 version = "0.1.0"
-source = "git+https://github.com/alisww/compass?branch=rocket#9af2621f99dc9f0ed23193c2a6309f0faba85e6c"
 dependencies = [
  "chrono",
  "futures",
