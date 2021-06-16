@@ -55,6 +55,3 @@ path = "src/server.rs"
 name = "monitor"
 path = "src/monitor.rs"
 
-[[bin]]
-name = "test_query"
-path = "src/test_query.rs"
