@@ -1,10 +1,18 @@
 services:
+  monitor:
+    image: allieee/rustventually:server
+    environment:
+      - "DB_URL=postgres://eventuallie:a@eventually_db/eventually"
+      - "POLL_DELAY=1000"
+      - "RUST_LOG=debug"
+    command: ["./monitor"]
+
   rustventually:
-    image: rustventually
+    image: allieee/rustventually:server
     ports:
       - "4445:4445"
     environment:
-      - ROCKET_DATABASES={eventually={url=postgres://eventuallie@eventually_db/eventually}}
+      - ROCKET_DATABASES={eventually={url=postgres://eventuallie:a@eventually_db/eventually}}
       - RUST_LOG=debug
       - ROCKET_LOG_LEVEL=debug
       - ROCKET_ADDRESS=0.0.0.0
@@ -14,7 +22,7 @@ services:
     image: eventually_postgres
     environment:
       - POSTGRES_USER=eventuallie
-      - POSTGRES_PASSWORD=
+      - POSTGRES_PASSWORD=a
       - POSTGRES_DB=eventually
     volumes:
       - db_data:/var/lib/postgresql/data
