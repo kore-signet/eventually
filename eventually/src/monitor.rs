@@ -136,7 +136,7 @@ fn ingest(
         let id = Uuid::parse_str(e["id"].as_str().unwrap()).unwrap();
 
         match trans.execute(
-            "INSERT INTO documents (doc_id, object) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            "INSERT INTO documents (doc_id, object) VALUES ($1, $2) ON CONFLICT DO UPDATE SET object = $2",
             &[&id, &e],
         ) {
             Ok(_) => {}
