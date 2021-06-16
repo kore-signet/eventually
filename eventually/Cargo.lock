@@ -146,6 +146,7 @@ dependencies = [
 [[package]]
 name = "compass"
 version = "0.1.0"
+source = "git+https://github.com/alisww/compass?branch=main#44743d88dda3150f38c9773291c79fc11f8738df"
 dependencies = [
  "chrono",
  "futures",
@@ -1351,6 +1352,7 @@ dependencies = [
  "reqwest",
  "rocket",
  "rocket_sync_db_pools",
+ "serde",
  "serde_json",
  "serde_yaml",
  "uuid",

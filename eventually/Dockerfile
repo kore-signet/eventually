@@ -37,6 +37,11 @@ COPY src ./src
 RUN cargo install --target x86_64-unknown-linux-musl --path .
 
 FROM debian:buster-slim
+
+RUN apt-get update && \
+    apt-get dist-upgrade -y && \
+    apt-get install wget -y
+
 COPY --from=build /usr/local/cargo/bin/server .
 COPY --from=build /usr/local/cargo/bin/fill .
 COPY --from=build /usr/local/cargo/bin/monitor .
