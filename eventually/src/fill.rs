@@ -16,7 +16,7 @@ fn main() -> std::io::Result<()> {
     let mut trans = client.transaction().unwrap();
 
     let statement = trans
-        .prepare("INSERT INTO documents (doc_id, object) VALUES ($1,$2)")
+        .prepare("INSERT INTO documents (doc_id, object) VALUES ($1,$2) ON CONFLICT (doc_id) DO UPDATE SET object = $2")
         .unwrap();
 
     for (i, l) in reader.lines().enumerate() {

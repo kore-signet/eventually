@@ -106,6 +106,38 @@ fn main() {
             }
         }
 
+        match client
+            .get("https://api.sibr.dev/upnuts/gc/ingested")
+            .send()
+        {
+            Ok(res) => {
+                if let Ok(events) = res.json::<JSONValue>() {
+                    let new_events = events
+                        .as_array()
+                        .unwrap()
+                        .into_iter()
+                        .filter(|x| !(last_batch.contains(x["id"].as_str().unwrap())))
+                        .cloned()
+                        .collect::<Vec<JSONValue>>();
+
+                    if new_events.len() < 1 {
+                        thread::sleep(sleep_for);
+                        continue 'poll_loop;
+                    }
+
+                    info!("Ingesting {} new events from upnuts!", new_events.len());
+
+                    latest = ingest(new_events, &mut db, &mut last_batch);
+                } else {
+                    error!("Couldn't parse response from upnuts as JSON");
+                }
+            }
+            Err(e) => {
+                error!("Couldn't reach upnuts API: {:?}", e);
+            }
+        }
+
+
         thread::sleep(sleep_for);
     }
 }
