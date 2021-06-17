@@ -26,7 +26,6 @@ fn main() {
 
     let mut last_library_fetch = Instant::now();
 
-    let mut last_batch: HashSet<String> = HashSet::new();
     let mut latest = String::new();
 
     'poll_loop: loop {
@@ -41,14 +40,13 @@ fn main() {
                                     Ok(r) => {
                                         if r.status() == StatusCode::OK {
                                             if let Ok(events) = r.json::<JSONValue>() {
-                                                let mut fake_batch = HashSet::new();
                                                 let new_events = events
                                                     .as_array()
                                                     .unwrap()
                                                     .into_iter()
                                                     .cloned()
                                                     .collect::<Vec<JSONValue>>();
-                                                ingest(new_events, &mut db, &mut fake_batch);
+                                                ingest(new_events, &mut db);
                                             }
                                         }
                                     },
@@ -85,7 +83,6 @@ fn main() {
                         .as_array()
                         .unwrap()
                         .into_iter()
-                        .filter(|x| !(last_batch.contains(x["id"].as_str().unwrap())))
                         .cloned()
                         .collect::<Vec<JSONValue>>();
 
@@ -96,7 +93,7 @@ fn main() {
 
                     info!("Ingesting {} new events!", new_events.len());
 
-                    latest = ingest(new_events, &mut db, &mut last_batch);
+                    latest = ingest(new_events, &mut db);
                 } else {
                     error!("Couldn't parse response from blaseball as JSON");
                 }
@@ -116,7 +113,6 @@ fn main() {
                         .as_array()
                         .unwrap()
                         .into_iter()
-                        .filter(|x| !(last_batch.contains(x["id"].as_str().unwrap())))
                         .cloned()
                         .collect::<Vec<JSONValue>>();
 
@@ -127,7 +123,7 @@ fn main() {
 
                     info!("Ingesting {} new events from upnuts!", new_events.len());
 
-                    latest = ingest(new_events, &mut db, &mut last_batch);
+                    ingest(new_events, &mut db);
                 } else {
                     error!("Couldn't parse response from upnuts as JSON");
                 }
@@ -144,10 +140,8 @@ fn main() {
 
 fn ingest(
     new_events: Vec<JSONValue>,
-    db: &mut DBClient,
-    last_batch: &mut HashSet<String>,
+    db: &mut DBClient
 ) -> String {
-    *last_batch = HashSet::new();
 
     let mut trans = db.transaction().unwrap(); // trans rights!
     let latest = new_events[new_events.len() - 1]["created"]
@@ -156,8 +150,6 @@ fn ingest(
         .to_owned();
 
     for mut e in new_events {
-        last_batch.insert(e["id"].as_str().unwrap().to_owned());
-
         e["created"] = json!(e["created"]
             .as_str()
             .unwrap()
