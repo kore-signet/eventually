@@ -3,7 +3,6 @@ use log::{error, info};
 use postgres::{Client as DBClient, NoTls};
 use reqwest::StatusCode;
 use serde_json::{json, Value as JSONValue};
-use std::collections::HashSet;
 use std::env;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -159,18 +158,56 @@ fn ingest(
 
         let id = Uuid::parse_str(e["id"].as_str().unwrap()).unwrap();
 
-        match trans.execute(
-            "INSERT INTO documents (doc_id, object) VALUES ($1, $2) ON CONFLICT (doc_id) DO UPDATE SET object = $2",
+        match trans.query_one(
+            "INSERT INTO documents (doc_id, object) VALUES ($1, $2) ON CONFLICT (doc_id) DO UPDATE SET object = $2 RETURNING (xmax=0) AS inserted",
             &[&id, &e],
         ) {
-            Ok(_) => {}
+            Ok(inserted_r) => {
+                if !inserted_r.get::<&str,bool>("inserted") {
+                    info!("Event {} updated; checking if changed meaningfully",id);
+                    match trans.query_opt(
+                        "SELECT true AS existed FROM versions WHERE doc_id = $1 AND (object::jsonb - 'nuts') @> ($2::jsonb - 'nuts') AND (object::jsonb - 'nuts') <@ ($2::jsonb - 'nuts')",
+                        &[&id, &e]
+                    ) {
+                        Ok(changed_r) => {
+                            if let None = changed_r {
+                                info!("Found changed event {:?}",id);
+                                match trans.query_one(
+                                    "INSERT INTO versions (doc_id,object,observed,hash) VALUES ($1,$2,$3,
+                                        encode(
+                                            sha256(
+                                                convert_to(
+                                                    ($2::jsonb #>> '{}'),
+                                                    'UTF8'
+                                                )
+                                            ),
+                                        'hex')
+                                    )
+                                    RETURNING hash",
+                                    &[&id,&e,&(Utc::now().timestamp_millis())]
+                                ) {
+                                    Ok(version_r) => {
+                                        info!("Inserted changed event {:?}",id);
+                                        let e_hash = version_r.get::<&str,String>("hash");
+                                        match trans.execute("SELECT pg_notify('changed_events',$1)", &[&e_hash]) {
+                                            Ok(_) => {}
+                                            Err(e) => error!("Couldn't send event notification -> {:?}", e),
+                                        };
+                                    },
+                                    Err(e) => {
+                                        error!("Couldn't add changed event {:?}: {:?}", id, e);
+                                    }
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("Couldn't check for event {:?} in versions: {:?}", id, e);
+                        }
+                    }
+                }
+            },
             Err(e) => error!("Couldn't add event to database -> {:?}", e),
         };
-
-        // match trans.execute("NOTIFY events $1", &[&e.to_string()]) {
-        //     Ok(_) => {}
-        //     Err(e) => error!("Couldn't send event notification -> {:?}", e),
-        // };
     }
 
     match trans.commit() {
