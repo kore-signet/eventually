@@ -1,5 +1,5 @@
 use chrono::prelude::*;
-use log::{error, info};
+use log::{error, info, debug};
 use postgres::{Client as DBClient, NoTls};
 use reqwest::StatusCode;
 use serde_json::{json, Value as JSONValue};
@@ -168,7 +168,7 @@ fn ingest(
         ) {
             Ok(inserted_r) => {
                 if !inserted_r.get::<&str,bool>("inserted") {
-                    info!("Event {} updated; checking if changed meaningfully",id);
+                    debug!("Event {} updated; checking if changed meaningfully",id);
                     match trans.query_opt(
                         "SELECT true AS existed FROM versions WHERE doc_id = $1 AND (object::jsonb - 'nuts') @> ($2::jsonb - 'nuts') AND (object::jsonb - 'nuts') <@ ($2::jsonb - 'nuts')",
                         &[&id, &e]
