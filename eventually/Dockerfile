@@ -29,9 +29,21 @@ ENV OPENSSL_DIR=/musl
 
 RUN rustup target add x86_64-unknown-linux-musl
 
-RUN USER=root cargo new rustventually
+RUN cargo new rustventually
+
 WORKDIR /usr/src/rustventually
+
 COPY Cargo.toml Cargo.lock ./
+
+RUN mkdir ./src
+RUN echo "// nya" >> ./src/lib.rs
+RUN echo "fn main() {}" >> ./src/server.rs
+RUN echo "fn main() {}" >> ./src/fill.rs
+RUN echo "fn main() {}" >> ./src/monitor.rs
+
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+RUN rm -r ./src
 COPY src ./src
 
 RUN cargo install --target x86_64-unknown-linux-musl --path .
