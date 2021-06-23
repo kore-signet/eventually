@@ -16,22 +16,31 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       -
-        name: Login to DockerHub
+        name: Login to ghcr
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and push search backend
         uses: docker/build-push-action@v2
         with:
           context: ./eventually
           push: true
-          tags: allieee/rustventually:server
+          tags: |
+            ghcr.io/alisww/eventually:server
+            ghcr.io/alisww/eventually:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/alisww/eventually:server
+          cache-to: type=inline
       -
         name: Build and push search db
         uses: docker/build-push-action@v2
         with:
           context: ./db
           push: true
-          tags: allieee/rustventually:db
+          tags: |
+            ghcr.io/alisww/eventually:${{ github.sha }}s
+            ghcr.io/alisww/eventually:db
+          cache-from: type=registry,ref=ghcr.io/alisww/eventually:db
+          cache-to: type=inline
