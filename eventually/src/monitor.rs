@@ -35,22 +35,24 @@ fn main() {
                     if let Ok(library) = res.json::<JSONValue>() {
                         for book in library.as_array().unwrap_or(&vec![]) {
                             for chapter in book["chapters"].as_array().unwrap_or(&vec![]) {
-                                match client.get("https://www.blaseball.com/database/feed/story").query(&vec![("id",chapter["id"].as_str())]).send() {
-                                    Ok(r) => {
-                                        if r.status() == StatusCode::OK {
-                                            if let Ok(events) = r.json::<JSONValue>() {
-                                                let new_events = events
-                                                    .as_array()
-                                                    .unwrap()
-                                                    .into_iter()
-                                                    .cloned()
-                                                    .collect::<Vec<JSONValue>>();
-                                                ingest(new_events, &mut db);
+                                if !chapter["redacted"].as_bool().unwrap_or(false) {
+                                    match client.get("https://www.blaseball.com/database/feed/story").query(&vec![("id",chapter["id"].as_str())]).send() {
+                                        Ok(r) => {
+                                            if r.status() == StatusCode::OK {
+                                                if let Ok(events) = r.json::<JSONValue>() {
+                                                    let new_events = events
+                                                        .as_array()
+                                                        .unwrap()
+                                                        .into_iter()
+                                                        .cloned()
+                                                        .collect::<Vec<JSONValue>>();
+                                                    ingest(new_events, &mut db);
+                                                }
                                             }
+                                        },
+                                        Err(e) => {
+                                            error!("Couldn't fetch events from library {:?}",e);
                                         }
-                                    },
-                                    Err(e) => {
-                                        error!("Couldn't fetch events from library {:?}",e);
                                     }
                                 }
                             }

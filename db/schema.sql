@@ -4,6 +4,13 @@ CREATE TABLE documents (
     object jsonb
 );
 
+CREATE TABLE versions (
+  doc_id uuid,
+  object jsonb,
+  observed bigint,
+  hash text
+);
+
 -- creates index on documents for faster JSONPATH matching
 CREATE INDEX doc_idx ON documents USING gin (object jsonb_path_ops);
 
