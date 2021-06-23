@@ -11,7 +11,9 @@ use uuid::Uuid;
 fn main() {
     env_logger::init();
 
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Eventually/0.1 (+https://cat-girl.gay)")
+        .build().unwrap();
     let mut db = DBClient::connect(&env::var("DB_URL").unwrap(), NoTls).unwrap();
 
     let sleep_for =
