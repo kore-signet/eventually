@@ -170,7 +170,7 @@ fn ingest(
                 if !inserted_r.get::<&str,bool>("inserted") {
                     debug!("Event {} updated; checking if changed meaningfully",id);
                     match trans.query_opt(
-                        "SELECT true AS existed FROM versions WHERE doc_id = $1 AND (object::jsonb - 'nuts') @> ($2::jsonb - 'nuts') AND (object::jsonb - 'nuts') <@ ($2::jsonb - 'nuts')",
+                        "SELECT true AS existed FROM versions WHERE doc_id = $1 AND ((object::jsonb #- '{metadata,scales}') #- '{nuts}') @> (($2::jsonb #- '{metadata,scales}') #- '{nuts}') AND ((object::jsonb #- '{metadata,scales}') #- '{nuts}') <@ (($2::jsonb #- '{metadata,scales}') #- '{nuts}')",
                         &[&id, &e]
                     ) {
                         Ok(changed_r) => {
