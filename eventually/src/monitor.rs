@@ -208,6 +208,11 @@ fn ingest(
                             error!("Couldn't check for event {:?} in versions: {:?}", id, e);
                         }
                     }
+                } else {
+                    match trans.execute("SELECT pg_notify('new_events',$1)", &[&e["id"].as_str().unwrap()]) {
+                        Ok(_) => {}
+                        Err(e) => error!("Couldn't send event notification -> {:?}", e),
+                    };
                 }
             },
             Err(e) => error!("Couldn't add event to database -> {:?}", e),

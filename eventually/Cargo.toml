@@ -24,6 +24,7 @@ version = "0.8"
 features = ["v4"]
 
 [dependencies.compass]
+# path = "../../compass"
 git = "https://github.com/alisww/compass"
 branch = "main"
 features = ["rocket_support"]
@@ -54,4 +55,3 @@ path = "src/server.rs"
 [[bin]]
 name = "monitor"
 path = "src/monitor.rs"
-
