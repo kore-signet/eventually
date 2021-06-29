@@ -32,6 +32,19 @@ paths:
         - schema:
             type: string
           in: query
+          name: sortby
+          description: element to which to sort by. uses postgres' array path syntax, so object.metadata.being is expressed as '{metadata,being}'.
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          in: query
+          name: sortorder
+          description: Order to sort by. defaults to desc
+        - schema:
+            type: string
+          in: query
           name: id
           description: Filter by event UUIDs
         - schema:
