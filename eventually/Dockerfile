@@ -33,7 +33,7 @@ RUN cargo new rustventually
 
 WORKDIR /usr/src/rustventually
 
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 RUN mkdir ./src
 RUN echo "// nya" >> ./src/lib.rs
