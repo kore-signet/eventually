@@ -16,3 +16,5 @@ CREATE INDEX doc_idx ON documents USING gin (object jsonb_path_ops);
 
 -- creates full text search index
 CREATE INDEX fts_idx ON documents USING gin (to_tsvector('english', (object ->> 'description'::text)));
+
+CREATE INDEX created_idx ON documents ((object #> '{created}'));
