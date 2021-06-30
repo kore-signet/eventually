@@ -176,12 +176,12 @@ fn ingest(
             Ok(inserted_r) => {
                 if !inserted_r.get::<&str,bool>("inserted") {
                     debug!("Event {} updated; checking if changed meaningfully",id);
-                    match trans.query_opt(
+                    match trans.query(
                         "SELECT true AS existed FROM versions WHERE doc_id = $1 AND (((object::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}') @> ((($2::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}') AND (((object::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}') <@ ((($2::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}')",
                         &[&id, &e]
                     ) {
                         Ok(changed_r) => {
-                            if let None = changed_r {
+                            if changed_r.len() < 1 {
                                 info!("Found changed event {:?}",id);
                                 match trans.query_one(
                                     "INSERT INTO versions (doc_id,object,observed,hash) VALUES ($1,$2,$3,
