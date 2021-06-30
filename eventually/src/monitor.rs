@@ -47,6 +47,11 @@ fn main() {
                                                         .unwrap()
                                                         .into_iter()
                                                         .cloned()
+                                                        .map(|mut e| {
+                                                            e["metadata"]["_eventually_book_title"] = book["title"].clone();
+                                                            e["metadata"]["_eventually_chapter_id"] = chapter["id"].clone();
+                                                            e
+                                                        })
                                                         .collect::<Vec<JSONValue>>();
                                                     ingest(new_events, &mut db);
                                                 }
@@ -159,6 +164,8 @@ fn ingest(
             .parse::<DateTime<Utc>>()
             .unwrap()
             .timestamp());
+
+        e["metadata"]["_eventually_ingest_time"] = json!(Utc::now().timestamp());
 
         let id = Uuid::parse_str(e["id"].as_str().unwrap()).unwrap();
 

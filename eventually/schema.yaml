@@ -68,3 +68,10 @@ fields:
     name: "event metadata"
     query:
       type: Nested
+
+  metadata._eventually_ingest_time:
+    name: "ingest time filter"
+    query:
+      type: Range
+      min: ingest_min
+      max: ingest_max
