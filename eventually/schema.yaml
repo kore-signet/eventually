@@ -75,3 +75,8 @@ fields:
       type: Range
       min: ingest_min
       max: ingest_max
+
+  metadata.redacted:
+    name: "is this redacted?"
+    query:
+      type: Bool
