@@ -148,7 +148,7 @@ dependencies = [
 [[package]]
 name = "compass"
 version = "0.1.0"
-source = "git+https://github.com/alisww/compass?branch=main#f2e0f6b1b38f9389c1fb934bab061fddc61e5ad0"
+source = "git+https://github.com/alisww/compass?branch=main#1ece99d520b8f042573d83c3693e40d285804492"
 dependencies = [
  "chrono",
  "futures",

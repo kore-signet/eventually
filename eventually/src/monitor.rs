@@ -1,5 +1,5 @@
 use chrono::prelude::*;
-use log::{error, info, debug};
+use log::{debug, error, info};
 use postgres::{Client as DBClient, NoTls};
 use reqwest::StatusCode;
 use serde_json::{json, Value as JSONValue};
@@ -13,7 +13,8 @@ fn main() {
 
     let client = reqwest::blocking::Client::builder()
         .user_agent("Eventually/0.1 (+https://cat-girl.gay)")
-        .build().unwrap();
+        .build()
+        .unwrap();
     let mut db = DBClient::connect(&env::var("DB_URL").unwrap(), NoTls).unwrap();
 
     let sleep_for =
@@ -111,10 +112,7 @@ fn main() {
             }
         }
 
-        match client
-            .get("https://api.sibr.dev/upnuts/gc/ingested")
-            .send()
-        {
+        match client.get("https://api.sibr.dev/upnuts/gc/ingested").send() {
             Ok(res) => {
                 if let Ok(events) = res.json::<JSONValue>() {
                     let new_events = events
@@ -141,16 +139,11 @@ fn main() {
             }
         }
 
-
         thread::sleep(sleep_for);
     }
 }
 
-fn ingest(
-    new_events: Vec<JSONValue>,
-    db: &mut DBClient
-) -> String {
-
+fn ingest(new_events: Vec<JSONValue>, db: &mut DBClient) -> String {
     let mut trans = db.transaction().unwrap(); // trans rights!
     let latest = new_events[new_events.len() - 1]["created"]
         .as_str()

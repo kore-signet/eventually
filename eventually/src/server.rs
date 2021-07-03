@@ -87,6 +87,30 @@ async fn search(
     db.run(move |mut c| json_search(&mut c, &schema, &req).map(|val| json!(val)))
         .await
 }
+
+#[get("/one_of_each_type")]
+async fn distinct_events(db: CompassConn) -> Result<JSONValue, CompassError> {
+    db.run(move |mut c| {
+        let mut evs: Vec<JSONValue> = Vec::new();
+        for event_type in c.query("SELECT DISTINCT (object->'type')::integer FROM documents",&[]).map_err(CompassError::PGError)? {
+            let etype: i32 = event_type.get(0);
+            let row = c.query_opt(format!("SELECT object FROM documents WHERE object @@ '(($.metadata.redacted == false) || !exists($.metadata.redacted)) && $.type == {}' LIMIT 1",etype).as_str(),&[])?;
+
+            if let Some(r) = row {
+                let mut ev: JSONValue = r.get(0);
+                if let Some(timest) = ev["created"].as_i64() {
+                    ev["created"] = json!(DateTime::<Utc>::from_utc(
+                        NaiveDateTime::from_timestamp(timest, 0),
+                        Utc,
+                    ).to_rfc3339());
+                    evs.push(ev);
+                }
+            }
+        }
+        Ok(json!(evs))
+    })
+    .await
+}
 //
 // #[get("/sse")]
 // async fn events(mut conn: CompassConn) -> Result<EventStream![],CompassError> {
@@ -117,5 +141,5 @@ fn rocket() -> _ {
         .manage(schema)
         .attach(CompassConn::fairing())
         .attach(CORS)
-        .mount("/", routes![search])
+        .mount("/", routes![search,distinct_events])
 }
