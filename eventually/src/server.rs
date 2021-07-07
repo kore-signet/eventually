@@ -11,7 +11,7 @@ use postgres::fallible_iterator::FallibleIterator;
 
 use rocket::fairing::{self, Fairing};
 use rocket::response::stream::{Event, EventStream};
-use rocket::{get, http::Header, http::Status, launch, routes, Request, Response};
+use rocket::{get, options, http::Header, http::Status, launch, routes, Request, Response, response};
 use rocket_sync_db_pools::{database, postgres};
 
 use rocket::request::{self, FromRequest, Outcome};
@@ -54,6 +54,26 @@ impl Fairing for CORS {
         response.set_header(Header::new("Access-Control-Allow-Methods", "GET"));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
     }
+}
+
+#[rocket::async_trait]
+impl<'r> response::Responder<'r, 'static> for CORS {
+    fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {
+        Response::build()
+            .header(Header::new("Access-Control-Allow-Origin", "*"))
+            .header(Header::new("Access-Control-Allow-Methods", "GET"))
+            .header(Header::new("Access-Control-Allow-Headers", "*"))
+            .header(Header::new("Access-Control-Max-Age","86400"))
+            .header(Header::new("Allow","OPTIONS, GET"))
+            .status(Status::NoContent)
+            .ok()
+    }
+}
+
+
+#[options("/<_..>")]
+async fn cors_preflight() -> CORS {
+    CORS
 }
 
 #[get("/events")]
@@ -141,5 +161,5 @@ fn rocket() -> _ {
         .manage(schema)
         .attach(CompassConn::fairing())
         .attach(CORS)
-        .mount("/", routes![search,distinct_events])
+        .mount("/", routes![search,distinct_events,cors_preflight])
 }

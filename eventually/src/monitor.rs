@@ -51,10 +51,11 @@ fn main() {
                                                         .map(|mut e| {
                                                             e["metadata"]["_eventually_book_title"] = book["title"].clone();
                                                             e["metadata"]["_eventually_chapter_id"] = chapter["id"].clone();
+                                                            e["metadata"]["_eventually_chapter_title"] = chapter["title"].clone();
                                                             e
                                                         })
                                                         .collect::<Vec<JSONValue>>();
-                                                    ingest(new_events, &mut db);
+                                                    ingest(new_events, &mut db, "blaseball.com_library".to_owned());
                                                 }
                                             }
                                         },
@@ -102,7 +103,7 @@ fn main() {
 
                     info!("Ingesting {} new events!", new_events.len());
 
-                    latest = ingest(new_events, &mut db);
+                    latest = ingest(new_events, &mut db, "blaseball.com".to_owned());
                 } else {
                     error!("Couldn't parse response from blaseball as JSON");
                 }
@@ -129,7 +130,7 @@ fn main() {
 
                     info!("Ingesting {} new events from upnuts!", new_events.len());
 
-                    ingest(new_events, &mut db);
+                    ingest(new_events, &mut db, "upnuts".to_owned());
                 } else {
                     error!("Couldn't parse response from upnuts as JSON");
                 }
@@ -143,7 +144,7 @@ fn main() {
     }
 }
 
-fn ingest(new_events: Vec<JSONValue>, db: &mut DBClient) -> String {
+fn ingest(new_events: Vec<JSONValue>, db: &mut DBClient, source: String) -> String {
     let mut trans = db.transaction().unwrap(); // trans rights!
     let latest = new_events[new_events.len() - 1]["created"]
         .as_str()
@@ -157,6 +158,8 @@ fn ingest(new_events: Vec<JSONValue>, db: &mut DBClient) -> String {
             .parse::<DateTime<Utc>>()
             .unwrap()
             .timestamp());
+
+        e["metadata"]["_eventually_ingest_source"] = json!(&source);
 
         e["metadata"]["_eventually_ingest_time"] = json!(Utc::now().timestamp());
 
