@@ -14,9 +14,13 @@ fields:
 
   type:
     name: "event type"
+    query:
+      type: NumericTag
 
   category:
     name: "event category"
+    query:
+      type: NumericTag
 
   phase:
     name: "event phase"
@@ -80,3 +84,10 @@ fields:
     name: "is this redacted?"
     query:
       type: Bool
+
+  metadata.scales:
+    name: "amount of upscales"
+    query:
+      type: Range
+      min: scales_min
+      max: scales_max
