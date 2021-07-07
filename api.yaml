@@ -85,6 +85,11 @@ paths:
         - schema:
             type: integer
           in: query
+          name: phase
+          description: Filter to specific phase
+        - schema:
+            type: integer
+          in: query
           name: phase_min
           description: Filter to events from phase > phase_min
         - schema:
@@ -92,6 +97,11 @@ paths:
           in: query
           name: phase_max
           description: Filter to events from phase < phase_max
+        - schema:
+            type: integer
+          in: query
+          name: day
+          description: Filter to specific day
         - schema:
             type: integer
           in: query
@@ -130,6 +140,11 @@ paths:
         - schema:
             type: integer
           in: query
+          name: season
+          description: Filter to specific season
+        - schema:
+            type: integer
+          in: query
           name: season_min
           description: Events with season > season_min
         - schema:
@@ -137,6 +152,16 @@ paths:
           in: query
           name: season_max
           description: Events with season < season_min
+        - schema:
+            type: integer
+          in: query
+          name: scales_min
+          description: Events with upscales > scales_min
+        - schema:
+            type: integer
+          in: query
+          name: scales_max
+          description: Events with upscales < scales_max
       description: |
         gets events from the index
 
