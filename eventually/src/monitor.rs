@@ -165,6 +165,8 @@ fn ingest(new_events: Vec<JSONValue>, db: &mut DBClient, source: String) -> Stri
 
         let id = Uuid::parse_str(e["id"].as_str().unwrap()).unwrap();
 
+        let old_event = trans.query_opt("SELECT object FROM documents WHERE doc_id = $1", &[&id]);
+
         match trans.query_one(
             "INSERT INTO documents (doc_id, object) VALUES ($1, $2) ON CONFLICT (doc_id) DO UPDATE SET object = $2 RETURNING (xmax=0) AS inserted",
             &[&id, &e],
@@ -179,6 +181,31 @@ fn ingest(new_events: Vec<JSONValue>, db: &mut DBClient, source: String) -> Stri
                         Ok(changed_r) => {
                             if changed_r.len() < 1 {
                                 info!("Found changed event {:?}",id);
+                                match old_event {
+                                    Ok(maybe_e) => {
+                                        if let Some(old_e) = maybe_e {
+                                            match trans.query_one(
+                                                "INSERT INTO versions (doc_id,object,observed,hash) VALUES ($1,$2,$3,
+                                                    encode(
+                                                        sha256(
+                                                            convert_to(
+                                                                ($2::jsonb #>> '{}'),
+                                                                'UTF8'
+                                                            )
+                                                        ),
+                                                    'hex')
+                                                )
+                                                RETURNING hash",
+                                                &[&id,&old_e.get::<&str,JSONValue>("object"),&(Utc::now().timestamp_millis())]
+                                            ) {
+                                                Ok(_) => {},
+                                                Err(e) => error!("Couldn't insert old version of event -> {:?}",e)
+                                            }
+                                        }
+                                    },
+                                    Err(e) => error!("Couldn't get old version of event -> {:?}",e)
+                                }
+
                                 match trans.query_one(
                                     "INSERT INTO versions (doc_id,object,observed,hash) VALUES ($1,$2,$3,
                                         encode(
