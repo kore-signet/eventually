@@ -6,6 +6,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 
+use uuid::Uuid;
+
 use postgres::error::Error as PGError;
 use postgres::fallible_iterator::FallibleIterator;
 
@@ -14,6 +16,7 @@ use rocket::response::stream::{Event, EventStream};
 use rocket::{
     get, http::Header, http::Status, launch, options, response, routes, Request, Response,
 };
+
 use rocket_sync_db_pools::{database, postgres};
 
 use rocket::request::{self, FromRequest, Outcome};
@@ -133,6 +136,31 @@ async fn distinct_events(db: CompassConn) -> Result<JSONValue, CompassError> {
     .await
 }
 
+#[get("/versions?<id>")]
+async fn get_versions(db: CompassConn, id: String) -> Result<JSONValue, CompassError> {
+    db.run(move |mut c| {
+        let id = Uuid::parse_str(id.as_str()).unwrap();
+        let results = c
+            .query("SELECT object FROM versions WHERE doc_id = $1", &[&id])
+            .map_err(CompassError::PGError)?;
+        Ok(json!(results
+            .into_iter()
+            .map(|row| {
+                let mut ev: JSONValue = row.get(0);
+                if let Some(timest) = ev["created"].as_i64() {
+                    ev["created"] = json!(DateTime::<Utc>::from_utc(
+                        NaiveDateTime::from_timestamp(timest, 0),
+                        Utc,
+                    )
+                    .to_rfc3339());
+                }
+                ev
+            })
+            .collect::<Vec<JSONValue>>()))
+    })
+    .await
+}
+
 //
 // #[get("/sse")]
 // async fn events(mut conn: CompassConn) -> Result<EventStream![],CompassError> {
@@ -163,5 +191,8 @@ fn rocket() -> _ {
         .manage(schema)
         .attach(CompassConn::fairing())
         .attach(CORS)
-        .mount("/", routes![search, distinct_events, cors_preflight])
+        .mount(
+            "/",
+            routes![search, distinct_events, get_versions, cors_preflight],
+        )
 }
