@@ -31,7 +31,7 @@ fn main() {
     let mut latest = String::new();
 
     'poll_loop: loop {
-        // library fetch time
+        // library fetch time; also performs a re-scan of all redacted events
         if last_library_fetch.elapsed() >= library_poll_delay {
             match client.get("https://raw.githubusercontent.com/xSke/blaseball-site-files/main/data/library.json").send() {
                 Ok(res) => {
@@ -71,6 +71,42 @@ fn main() {
                 Err(e) => {
                     error!("Couldn't fetch library json {:?}",e);
                 }
+            }
+
+            match db.query("SELECT object FROM documents WHERE object @@ '($.metadata.redacted == true) && (!exists($.metadata._eventually_book_title))'", &[]) {
+                Ok(redacted_events) => {
+                    info!("found {} redacted events", redacted_events.len());
+                    for redacted_e in redacted_events {
+                        let redacted_e_obj = redacted_e.get::<&str,JSONValue>("object");
+                        let timestamp = Utc.timestamp(redacted_e_obj["created"].as_i64().unwrap(),0).to_rfc3339();
+                        match client.get("https://www.blaseball.com/database/feed/global")
+                                    .query(&vec![("limit","100"), ("sort","1"), ("start",&timestamp)])
+                                    .send() {
+                                        Ok(res) => {
+                                            if let Ok(events) = res.json::<JSONValue>() {
+                                                let new_events = events
+                                                    .as_array()
+                                                    .unwrap()
+                                                    .into_iter()
+                                                    .cloned()
+                                                    .collect::<Vec<JSONValue>>();
+                                                info!("Re-ingesting redacted event {:?}",redacted_e_obj["id"].as_str().unwrap());
+
+                                                ingest(new_events, &mut db, "blaseball.com".to_owned());
+                                        } else {
+                                            error!("Couldn't parse response from blaseball as JSON");
+                                        }
+                                    }
+                                    Err(e) => {
+                                        error!("Couldn't reach Blaseball API: {:?}", e);
+                                    }
+                            }
+                    }
+                },
+                Err(e) => {
+                    error!("Couldn't scan our db for redacted events: {:?}", e);
+                }
+
             }
 
             last_library_fetch = Instant::now();
