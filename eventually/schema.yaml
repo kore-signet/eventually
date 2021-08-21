@@ -21,6 +21,14 @@ fields:
     name: "event category"
     query:
       type: NumericTag
+      aliases:
+        PLAYS: 0
+        GAME: 0
+        CHANGES: 1
+        SPECIAL: 2
+        ABILITIES: 2
+        OUTCOMES: 3
+        NARRATIVE: 4
 
   phase:
     name: "event phase"
@@ -28,6 +36,24 @@ fields:
       type: Range
       min: phase_min
       max: phase_max
+      aliases:
+        GODS_DAY: 0
+        PRESEASON: 1
+        EARLSEASON: 2
+        EARLSIESTA: 3
+        MIDSEASON: 4
+        LATESIESTA: 5
+        LATESEASON: 6
+        ENDSEASON: 7
+        PREPOSTSEASON: 8
+        EARLPOSTSEASON: 9
+        EARLPOSTSEASONEND: 10
+        WILDCARDEVENING: 10
+        LATEPOSTSEASON: 11
+        POSTSEASONEND: 12
+        ELECTION: 13
+        SPECIAL: 14
+        SPECIALEVENT: 14
 
   season:
     name: "event season"
@@ -91,3 +117,21 @@ fields:
       type: Range
       min: scales_min
       max: scales_max
+
+  metadata.being:
+    name: "divinity"
+    query:
+      type: NumericTag
+      aliases:
+        EMERGENCY: -1
+        EMERGENCY_ALERT: -1
+        SHELLED_ONE: 0
+        PEANUT: 0
+        MONITOR: 1
+        BINKY: 1
+        COIN: 2
+        GIRLBOSS: 2
+        READER: 3
+        MICROPHONE: 4
+        LOOTCRATES: 5
+        NAMERIFEHT: 6
