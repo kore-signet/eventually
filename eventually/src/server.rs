@@ -12,7 +12,7 @@ use postgres::error::Error as PGError;
 use postgres::fallible_iterator::FallibleIterator;
 
 use rocket::fairing::{self, Fairing};
-use rocket::response::stream::{Event, EventStream};
+use rocket::serde::json::Json as RocketJson;
 use rocket::{
     get, http::Header, http::Status, launch, options, response, routes, Request, Response,
 };
@@ -85,7 +85,7 @@ async fn search(
     mut raw_req: Query,
     db: CompassConn,
     schema: Schema,
-) -> Result<JSONValue, CompassError> {
+) -> Result<RocketJson<Vec<JSONValue>>, CompassError> {
     let mut req = raw_req.0;
 
     if let Some(mut before) = req.get_mut("before") {
@@ -108,8 +108,59 @@ async fn search(
         }
     }
 
-    db.run(move |mut c| json_search(&mut c, &schema, &req).map(|val| json!(val)))
-        .await
+    let expand_children = req
+        .remove("expand_children")
+        .and_then(|c| c.parse::<bool>().ok())
+        .unwrap_or(false);
+    let expand_parent = req
+        .remove("expand_parent")
+        .and_then(|c| c.parse::<bool>().ok())
+        .unwrap_or(false);
+
+    db.run(move |mut c| match json_search(&mut c, &schema, &req) {
+        Ok(v) => v
+            .into_iter()
+            .map(|mut event| {
+                if expand_children {
+                    if let Some(children) = event
+                        .get("metadata")
+                        .and_then(|i| i.get("children"))
+                        .and_then(|i| i.as_array())
+                    {
+                        event["metadata"]["children"] = json!(get_by_ids(
+                            &mut c,
+                            &schema,
+                            &children
+                                .into_iter()
+                                .filter_map(|i| i.as_str())
+                                .filter_map(|i| Uuid::parse_str(i).ok())
+                                .collect()
+                        )?);
+                    }
+                }
+
+                if expand_parent {
+                    if let Some(parent) = event
+                        .get("metadata")
+                        .and_then(|i| i.get("parent"))
+                        .and_then(|i| i.as_str())
+                        .and_then(|i| Uuid::parse_str(i).ok())
+                    {
+                        event["metadata"]["parent"] = json!(get_by_ids(
+                            &mut c,
+                            &schema,
+                            &vec![parent]
+                        )?.first());
+                    }
+                }
+
+                Ok(event)
+            })
+            .collect::<Result<Vec<JSONValue>, CompassError>>()
+            .map(|v| RocketJson(v)),
+        Err(e) => Err(e),
+    })
+    .await
 }
 
 #[get("/one_of_each_type")]
