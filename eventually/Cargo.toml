@@ -9,6 +9,7 @@ serde_json = "1"
 serde_yaml = "0.8.17"
 chrono = "0.4"
 log = "0.4"
+futures-util = "0.3"
 env_logger = "0.8.3"
 
 [dependencies.postgres]
@@ -28,6 +29,10 @@ features = ["v4"]
 git = "https://github.com/alisww/compass"
 branch = "main"
 features = ["rocket_support"]
+
+[dependencies.crab]
+git = "https://github.com/alisww/carcinization"
+branch = "main"
 
 [dependencies.rocket]
 git = "https://github.com/SergioBenitez/Rocket"
