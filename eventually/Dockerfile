@@ -1,52 +1,9 @@
-FROM rust:1.52-slim AS build
-WORKDIR /usr/src
-
-RUN apt-get update && \
-    apt-get dist-upgrade -y && \
-    apt-get install -y musl-tools wget build-essential cmake unzip
-
-
-RUN ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/x86_64-linux-musl/asm \
-   && ln -s /usr/include/asm-generic /usr/include/x86_64-linux-musl/asm-generic\
-   && ln -s /usr/include/linux /usr/include/x86_64-linux-musl/linux
-
-RUN mkdir /musl
-
-
-workdir /usr/src/openssl
-RUN wget https://github.com/openssl/openssl/archive/OpenSSL_1_1_1f.tar.gz
-RUN tar zxvf OpenSSL_1_1_1f.tar.gz
-WORKDIR /usr/src/openssl/openssl-OpenSSL_1_1_1f
-
-RUN CC="musl-gcc -fPIE -pie" ./Configure no-shared no-async --prefix=/musl --openssldir=/musl/ssl linux-x86_64
-RUN make depend
-RUN make -j$(nproc)
-RUN make install
-
-ENV PKG_CONFIG_ALLOW_CROSS=1
-ENV OPENSSL_STATIC=true
-ENV OPENSSL_DIR=/musl
-
-RUN rustup target add x86_64-unknown-linux-musl
-
-RUN cargo new rustventually
+FROM rust:1.54-buster as builder
 
 WORKDIR /usr/src/rustventually
+COPY . .
 
-COPY Cargo.toml ./
-
-RUN mkdir ./src
-RUN echo "// nya" >> ./src/lib.rs
-RUN echo "fn main() {}" >> ./src/server.rs
-RUN echo "fn main() {}" >> ./src/fill.rs
-RUN echo "fn main() {}" >> ./src/monitor.rs
-
-RUN cargo build --release --target x86_64-unknown-linux-musl
-
-RUN rm -r ./src
-COPY src ./src
-
-RUN cargo install --target x86_64-unknown-linux-musl --path .
+RUN cargo build --release
 
 FROM debian:buster-slim
 
@@ -54,9 +11,9 @@ RUN apt-get update && \
     apt-get dist-upgrade -y && \
     apt-get install wget -y
 
-COPY --from=build /usr/local/cargo/bin/server .
-COPY --from=build /usr/local/cargo/bin/fill .
-COPY --from=build /usr/local/cargo/bin/monitor .
+COPY --from=builder /usr/src/rustventually/target/release/server .
+COPY --from=builder /usr/src/rustventually/target/release/monitor .
+COPY --from=builder /usr/src/rustventually/target/release/fill .
 COPY schema.yaml .
 USER 1000
 CMD ["./server"]
