@@ -12,7 +12,9 @@ use crate::*;
 use compass::*;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Packet {
+    play_count: i64,
     feed: Vec<JSONValue>,
     game_updates: Vec<JSONValue>,
 }
@@ -22,7 +24,7 @@ pub async fn get_packets(
     db: CompassConn,
     id: String,
     schema: Schema,
-) -> Result<RocketJson<HashMap<i64, Packet>>, CompassError> {
+) -> Result<RocketJson<Vec<Packet>>, CompassError> {
     let mut packets: HashMap<i64, Packet> = HashMap::new();
     let game = id.clone();
     for event in db
@@ -40,6 +42,7 @@ pub async fn get_packets(
         let packet = packets
             .entry(event["metadata"]["play"].as_i64().unwrap())
             .or_insert(Packet {
+                play_count: event["metadata"]["play"].as_i64().unwrap(),
                 feed: vec![],
                 game_updates: vec![],
             });
@@ -70,12 +73,16 @@ pub async fn get_packets(
             .and_then(|v| v.as_i64())
         {
             let packet = packets.entry(count - 1).or_insert(Packet {
+                play_count: count - 1,
                 feed: vec![],
                 game_updates: vec![],
             });
             packet.game_updates.push(val.unwrap());
         }
     }
+
+    let mut packets: Vec<Packet> = packets.into_iter().map(|(_,v)| v).collect();
+    packets.sort_by_key(|v| v.play_count);
 
     Ok(RocketJson(packets))
 }
