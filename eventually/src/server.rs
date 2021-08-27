@@ -1,6 +1,6 @@
-use rustventually::*;
 use compass::*;
-use rocket::{routes,launch};
+use rocket::{launch, routes};
+use rustventually::*;
 use std::fs::File;
 use std::io::Read;
 //
@@ -35,10 +35,12 @@ fn rocket() -> _ {
         .attach(CORS)
         .mount(
             "/",
-            routes![eventually::search, eventually::distinct_events, eventually::get_versions, cors_preflight],
+            routes![
+                eventually::search,
+                eventually::distinct_events,
+                eventually::get_versions,
+                cors_preflight
+            ],
         )
-        .mount(
-            "/sachet",
-            routes![sachet::get_packets]
-        )
+        .mount("/sachet", routes![sachet::get_packets])
 }
