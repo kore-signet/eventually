@@ -58,15 +58,16 @@ pub struct GameUpdate {
     at_bat_strikes: Option<i64>,
     half_inning_outs: Option<i64>,
     baserunner_count: Option<i64>,
-    bases_occupied: Vec<Option<i64>>,
-    base_runner_mods: Vec<String>,
+    bases_occupied: Option<Vec<Option<i64>>>,
+    base_runner_mods: Option<Vec<String>>,
+    base_runners: Option<Vec<String>>,
     last_update: Option<String>,
     score_ledger: Option<String>,
     score_update: Option<String>,
     away_team_batter_count: Option<i64>,
     home_team_batter_count: Option<i64>,
     shame: Option<bool>,
-    outcomes: Vec<String>,
+    outcomes: Option<Vec<String>>,
     secret_baserunner: Option<String>,
     state: Option<JSONValue>,
     #[serde(skip_serializing)]
@@ -97,6 +98,7 @@ pub struct FeedEvent {
 pub struct Packet {
     play_count: i64,
     sub_play: i64,
+    #[serde(rename = "_sachet_packet_incomplete")]
     _packet_incomplete: bool,
     #[serde(flatten)]
     feed: FeedEvent,
