@@ -1,6 +1,5 @@
 use chrono::prelude::*;
 use compass::*;
-use postgres::fallible_iterator::FallibleIterator;
 use std::collections::HashMap;
 
 use rocket::fairing::{self, Fairing};
