@@ -93,6 +93,15 @@ fields:
     query:
       type: Fulltext
       lang: english
+      syntax: Phrase
+
+  description~:
+    name: "event description - websearch"
+    query:
+      type: Fulltext
+      target: description
+      lang: english
+      syntax: WebSearch
 
   metadata:
     name: "event metadata"
