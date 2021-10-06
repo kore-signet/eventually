@@ -11,6 +11,7 @@ services:
     image: allieee/rustventually:server
     ports:
       - "4445:4445"
+    build: ./eventually
     environment:
       - ROCKET_DATABASES={eventually={url=postgres://eventuallie:a@eventually_db/eventually}}
       - RUST_LOG=debug
@@ -20,6 +21,7 @@ services:
 
   eventually_db:
     image: eventually_postgres
+    build: ./db
     environment:
       - POSTGRES_USER=eventuallie
       - POSTGRES_PASSWORD=a
