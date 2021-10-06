@@ -24,7 +24,6 @@ pub struct ChronGameUpdate {
 pub struct GameUpdate {
     #[serde(rename(serialize = "gameId"))]
     id: String,
-    phase: Option<i64>,
     home_team: Option<String>,
     away_team: Option<String>,
     home_batter: Option<String>,
