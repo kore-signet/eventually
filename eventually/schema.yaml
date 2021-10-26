@@ -80,6 +80,9 @@ fields:
 
   teamTags:
     name: "event team tags"
+  
+  sim:
+    name: "sim tag"
 
   tournament:
     name: "event tournament"
