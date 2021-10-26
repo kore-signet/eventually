@@ -147,7 +147,7 @@ fn main() {
             &mut db,
             &client,
             "blaseball.com",
-            &format!("{}https://api.blaseball.com/database/feed/global", base_url),
+            "https://api.blaseball.com/database/feed/global",
             blaseball_params,
         ) {
             Ok(time) => {
