@@ -50,7 +50,7 @@ fn ingest_from_url(
     source: &str,
     url: &str,
     parameters: Vec<(&str, String)>,
-) -> anyhow::Result<Option<DateTime<Utc>>> {
+) -> anyhow::Result<Option<DateTime<FixedOffset>>> {
     let events = client
         .get(url)
         .query(&parameters)
@@ -120,7 +120,7 @@ fn main() {
     let mut last_library_fetch = Instant::now();
     let mut last_redacted_fetch = Instant::now();
 
-    let mut latest: Option<DateTime<Utc>> = None;
+    let mut latest: Option<DateTime<FixedOffset>> = None;
 
     loop {
         if last_library_fetch.elapsed() >= library_poll_delay {
@@ -177,19 +177,19 @@ fn ingest(
     new_events: Vec<JSONValue>,
     db: &mut DBClient,
     source: String,
-) -> anyhow::Result<DateTime<Utc>> {
+) -> anyhow::Result<DateTime<FixedOffset>> {
     let mut trans = db.transaction().unwrap(); // trans rights!
     let latest = new_events[new_events.len() - 1]["created"]
         .as_str()
         .unwrap()
-        .parse::<DateTime<Utc>>()
+        .parse::<DateTime<FixedOffset>>()
         .unwrap();
 
     for mut e in new_events {
         e["created"] = json!(e["created"]
             .as_str()
             .unwrap()
-            .parse::<DateTime<Utc>>()
+            .parse::<DateTime<FixedOffset>>()
             .unwrap()
             .timestamp());
 
