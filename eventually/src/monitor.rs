@@ -24,7 +24,7 @@ fn poll_library(db: &mut DBClient, client: &reqwest::blocking::Client) -> anyhow
         for chapter in book["chapters"].as_array().unwrap_or(&vec![]) {
             if !chapter["redacted"].as_bool().unwrap_or(false) {
                 let events = client
-                    .get("https://www.blaseball.com/database/feed/story")
+                    .get("https://api.blaseball.com/database/feed/story")
                     .query(&vec![("id", chapter["id"].as_str())])
                     .send()
                     .and_then(|r| r.json::<Vec<JSONValue>>())?
@@ -81,7 +81,7 @@ fn poll_redacted(db: &mut DBClient, client: &reqwest::blocking::Client) -> anyho
             db,
             &client,
             "blaseball.com",
-            "https://www.blaseball.com/database/feed/global",
+            "https://api.blaseball.com/database/feed/global",
             vec![
                 ("limit", "100".to_owned()),
                 ("sort", "1".to_owned()),
@@ -147,7 +147,7 @@ fn main() {
             &mut db,
             &client,
             "blaseball.com",
-            "https://www.blaseball.com/database/feed/global",
+            &format!("{}https://api.blaseball.com/database/feed/global", base_url),
             blaseball_params,
         ) {
             Ok(time) => {
