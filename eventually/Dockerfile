@@ -1,4 +1,4 @@
-FROM rust:1.54-buster as builder
+FROM rust:1.56-buster as builder
 
 WORKDIR /usr/src/rustventually
 COPY . .

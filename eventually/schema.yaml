@@ -1,4 +1,5 @@
 default_order_by: "{created}"
+table: documents_millis
 
 fields:
   id:
@@ -66,7 +67,7 @@ fields:
     name: "event timestamp"
     converter:
       from: DateTimeString
-      to: Timestamp
+      to: TimestampMillis
     query:
       type: Range
       min: after

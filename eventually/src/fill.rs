@@ -1,5 +1,5 @@
 use chrono::prelude::*;
-use postgres::{Client, Error, NoTls};
+use postgres::{Client, NoTls};
 use serde_json::{json, Value};
 use std::env;
 use std::fs::File;
@@ -10,7 +10,7 @@ use uuid::Uuid;
 fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let file = File::open(&args[1])?;
-    let mut reader = BufReader::new(file);
+    let reader = BufReader::new(file);
     let mut client = Client::connect(&args[2], NoTls).unwrap();
 
     let mut trans = client.transaction().unwrap();

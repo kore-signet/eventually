@@ -36,6 +36,12 @@ fn poll_library(db: &mut DBClient, client: &reqwest::blocking::Client) -> anyhow
                         e
                     })
                     .collect::<Vec<JSONValue>>();
+                info!(
+                    "ingesting {} library events - book {}, chapter {}",
+                    events.len(),
+                    book["title"],
+                    chapter["title"]
+                );
                 ingest(events, db, "blaseball.com_library".to_owned())?;
             }
         }
@@ -57,6 +63,7 @@ fn ingest_from_url(
         .send()
         .and_then(|r| r.json::<Vec<JSONValue>>())?;
     if events.len() < 1 {
+        info!("got no events from source {}", source);
         return Ok(None);
     }
 
@@ -97,6 +104,12 @@ fn main() {
     env_logger::init();
 
     let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(
+            env::var("REQUEST_TIMEOUT")
+                .unwrap_or("5".to_owned())
+                .parse::<u64>()
+                .unwrap(),
+        ))
         .user_agent("Eventually/0.1 (+https://cat-girl.gay)")
         .build()
         .unwrap();
@@ -111,14 +124,14 @@ fn main() {
             .unwrap(),
     );
 
-    let redacted_poll_delay = Duration::from_secs(
+    let _redacted_poll_delay = Duration::from_secs(
         (&env::var("REDACTED_POLL_DELAY").unwrap_or("120".to_owned()))
             .parse::<u64>()
             .unwrap(),
     );
 
     let mut last_library_fetch = Instant::now();
-    let mut last_redacted_fetch = Instant::now();
+    let _last_redacted_fetch = Instant::now();
 
     let mut latest: Option<DateTime<Utc>> = None;
 
@@ -126,11 +139,6 @@ fn main() {
         if last_library_fetch.elapsed() >= library_poll_delay {
             report_error!(poll_library(&mut db, &client), "library ingest");
             last_library_fetch = Instant::now();
-        }
-
-        if last_redacted_fetch.elapsed() >= redacted_poll_delay {
-            report_error!(poll_redacted(&mut db, &client), "redacted event ingest");
-            last_redacted_fetch = Instant::now();
         }
 
         let blaseball_params = if let Some(timestamp) = latest {
@@ -151,24 +159,27 @@ fn main() {
             blaseball_params,
         ) {
             Ok(time) => {
-                latest = time;
+                if time.is_some() {
+                    latest = time;
+                }
             }
             Err(e) => {
                 error!("Error in main ingest: {}", e);
             }
         };
 
-        report_error!(
-            ingest_from_url(
-                &mut db,
-                &client,
-                "upnuts",
-                "https://api.sibr.dev/upnuts/gc/ingested",
-                vec![],
-            ),
-            "upnuts ingest"
-        );
+        // report_error!(
+        //     ingest_from_url(
+        //         &mut db,
+        //         &client,
+        //         "upnuts",
+        //         "https://api.sibr.dev/upnuts/gc/ingested",
+        //         vec![],
+        //     ),
+        //     "upnuts ingest"
+        // );
 
+        // println!("{:?}",sleep_for);
         thread::sleep(sleep_for);
     }
 }
@@ -185,13 +196,15 @@ fn ingest(
         .parse::<DateTime<Utc>>()
         .unwrap();
 
+    let mut changed_events = 0;
+
     for mut e in new_events {
         e["created"] = json!(e["created"]
             .as_str()
             .unwrap()
             .parse::<DateTime<Utc>>()
             .unwrap()
-            .timestamp());
+            .timestamp_millis());
 
         e["metadata"]["_eventually_ingest_source"] = json!(&source);
 
@@ -214,7 +227,7 @@ fn ingest(
             ).unwrap();
 
             if changed_r.len() < 1 {
-                info!("Found changed event {:?}", id);
+                debug!("Found changed event {:?}", id);
                 if let Some(old_e) = possible_old_event {
                     let insert_statement = trans.prepare(
                         "INSERT INTO versions (doc_id,object,observed,hash) VALUES ($1,$2,$3,
@@ -237,13 +250,14 @@ fn ingest(
                             &(Utc::now().timestamp_millis()),
                         ],
                     )?;
-                    let e_hash = trans
+                    let _e_hash = trans
                         .query_one(
                             &insert_statement,
                             &[&id, &e, &(Utc::now().timestamp_millis())],
                         )?
                         .get::<&str, String>("hash");
-                    trans.execute("SELECT pg_notify('changed_events',$1)", &[&e_hash])?;
+                    changed_events += 1;
+                    // trans.execute("SELECT pg_notify('changed_events',$1)", &[&e_hash])?;
                 } else {
                     trans.execute(
                         "SELECT pg_notify('new_events',$1)",
@@ -255,6 +269,11 @@ fn ingest(
     }
 
     trans.commit()?;
+
+    info!(
+        "ingested {} changed events from source {}",
+        changed_events, source
+    );
 
     Ok(latest)
 }
