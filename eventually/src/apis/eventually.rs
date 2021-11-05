@@ -3,7 +3,6 @@ use serde_json::json;
 use serde_json::Value as JSONValue;
 use uuid::Uuid;
 
-
 use rocket::get;
 use rocket::serde::json::Json as RocketJson;
 
@@ -18,7 +17,7 @@ pub async fn search(
     if let Some(before) = req.get_mut("before") {
         if before.parse::<i64>().is_err() {
             *before = before
-                .parse::<DateTime<Utc>>()
+                .parse::<DateTime<FixedOffset>>()
                 .unwrap()
                 .timestamp_millis()
                 .to_string();
@@ -28,7 +27,7 @@ pub async fn search(
     if let Some(after) = req.get_mut("after") {
         if after.parse::<i64>().is_err() {
             *after = after
-                .parse::<DateTime<Utc>>()
+                .parse::<DateTime<FixedOffset>>()
                 .unwrap()
                 .timestamp_millis()
                 .to_string();
