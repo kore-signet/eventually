@@ -10,7 +10,6 @@ use crab::chron::{self, v1};
 
 use crate::*;
 
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ChronGameUpdate {

@@ -76,7 +76,7 @@ fn ingest_from_url(
 }
 
 fn poll_redacted(db: &mut DBClient, client: &reqwest::blocking::Client) -> anyhow::Result<()> {
-    let redacted_events = db.query("SELECT object FROM documents WHERE object @@ '($.metadata.redacted == true) && (!exists($.metadata._eventually_book_title))'", &[])?;
+    let redacted_events = db.query("SELECT object FROM documents_millis WHERE object @@ '($.metadata.redacted == true) && (!exists($.metadata._eventually_book_title))'", &[])?;
 
     for redacted_e in redacted_events {
         let redacted_e_obj = redacted_e.get::<&str, JSONValue>("object");
@@ -213,10 +213,10 @@ fn ingest(
         let id = Uuid::parse_str(e["id"].as_str().unwrap()).unwrap();
 
         let possible_old_event =
-            trans.query_opt("SELECT object FROM documents WHERE doc_id = $1", &[&id])?;
+            trans.query_opt("SELECT object FROM documents_millis WHERE doc_id = $1", &[&id])?;
 
         let inserted_r = trans.query_one(
-            "INSERT INTO documents (doc_id, object) VALUES ($1, $2) ON CONFLICT (doc_id) DO UPDATE SET object = $2 RETURNING (xmax=0) AS inserted",
+            "INSERT INTO documents_millis (doc_id, object) VALUES ($1, $2) ON CONFLICT (doc_id) DO UPDATE SET object = $2 RETURNING (xmax=0) AS inserted",
             &[&id, &e],
         )?;
 

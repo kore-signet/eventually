@@ -16,8 +16,7 @@ pub async fn search(
 
     if let Some(before) = req.get_mut("before") {
         if before.parse::<i64>().is_err() {
-            *before = before
-                .parse::<DateTime<FixedOffset>>()
+            *before = DateTime::parse_from_rfc3339(before)
                 .unwrap()
                 .timestamp_millis()
                 .to_string();
@@ -26,8 +25,8 @@ pub async fn search(
 
     if let Some(after) = req.get_mut("after") {
         if after.parse::<i64>().is_err() {
-            *after = after
-                .parse::<DateTime<FixedOffset>>()
+            println!("{}", after);
+            *after = DateTime::parse_from_rfc3339(after)
                 .unwrap()
                 .timestamp_millis()
                 .to_string();
@@ -119,7 +118,7 @@ pub async fn distinct_events(db: CompassConn) -> Result<JSONValue, CompassError>
             if let Some(r) = row {
                 let mut ev: JSONValue = r.get(0);
                 if let Some(timest) = ev["created"].as_i64() {
-                    ev["created"] = json!(Utc.timestamp_millis(timest).to_rfc3339());
+                    ev["created"] = json!(Utc.timestamp_millis(timest).to_rfc3339_opts(chrono::SecondsFormat::Millis,true));
                     evs.push(ev);
                 }
             }
@@ -141,7 +140,9 @@ pub async fn get_versions(db: CompassConn, id: String) -> Result<JSONValue, Comp
             .map(|row| {
                 let mut ev: JSONValue = row.get(0);
                 if let Some(timest) = ev["created"].as_i64() {
-                    ev["created"] = json!(Utc.timestamp_millis(timest).to_rfc3339());
+                    ev["created"] = json!(Utc
+                        .timestamp_millis(timest)
+                        .to_rfc3339_opts(chrono::SecondsFormat::Millis, true));
                 }
                 ev
             })
