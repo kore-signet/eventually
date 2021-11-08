@@ -212,8 +212,10 @@ fn ingest(
 
         let id = Uuid::parse_str(e["id"].as_str().unwrap()).unwrap();
 
-        let possible_old_event =
-            trans.query_opt("SELECT object FROM documents_millis WHERE doc_id = $1", &[&id])?;
+        let possible_old_event = trans.query_opt(
+            "SELECT object FROM documents_millis WHERE doc_id = $1",
+            &[&id],
+        )?;
 
         let inserted_r = trans.query_one(
             "INSERT INTO documents_millis (doc_id, object) VALUES ($1, $2) ON CONFLICT (doc_id) DO UPDATE SET object = $2 RETURNING (xmax=0) AS inserted",

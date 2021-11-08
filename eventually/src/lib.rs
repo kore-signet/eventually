@@ -27,7 +27,7 @@ impl<'r> FromRequest<'r> for Query {
                 }
                 Outcome::Success(Query(hash))
             }
-            None => Outcome::Failure((Status::BadRequest, CompassError::FieldNotFound)),
+            None => Outcome::Success(Query(HashMap::new())),
         }
     }
 }
