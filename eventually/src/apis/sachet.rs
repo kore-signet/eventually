@@ -31,6 +31,8 @@ pub struct GameUpdate {
     away_batter_mod: Option<String>,
     home_pitcher: Option<String>,
     away_pitcher: Option<String>,
+    home_pitcher_name: Option<String>,
+    away_pitcher_name: Option<String>,
     home_pitcher_mod: Option<String>,
     away_pitcher_mod: Option<String>,
     home_outs: Option<i64>,
