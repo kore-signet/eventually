@@ -37,6 +37,7 @@ fn rocket() -> _ {
             "/",
             routes![
                 eventually::search,
+                eventually::count,
                 eventually::distinct_events,
                 eventually::get_versions,
                 cors_preflight

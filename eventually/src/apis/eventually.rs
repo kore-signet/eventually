@@ -6,6 +6,37 @@ use uuid::Uuid;
 use rocket::get;
 use rocket::serde::json::Json as RocketJson;
 
+#[get("/count")]
+pub async fn count(
+    raw_req: Query,
+    db: CompassConn,
+    schema: Schema,
+) -> Result<RocketJson<JSONValue>, CompassError> {
+    let mut req = raw_req.0;
+
+    if let Some(before) = req.get_mut("before") {
+        if before.parse::<i64>().is_err() {
+            *before = DateTime::parse_from_rfc3339(before)
+                .unwrap()
+                .timestamp_millis()
+                .to_string();
+        }
+    }
+
+    if let Some(after) = req.get_mut("after") {
+        if after.parse::<i64>().is_err() {
+            println!("{}", after);
+            *after = DateTime::parse_from_rfc3339(after)
+                .unwrap()
+                .timestamp_millis()
+                .to_string();
+        }
+    }
+
+    db.run(move |mut c| json_count(&mut c, &schema, &req).map(|v| RocketJson(json!({"count": v}))))
+    .await
+}
+
 #[get("/events")]
 pub async fn search(
     raw_req: Query,
