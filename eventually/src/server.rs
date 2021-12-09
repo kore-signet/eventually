@@ -26,6 +26,7 @@ use sled::Db as SledDB;
 // }
 
 #[derive(serde::Deserialize,Debug)]
+#[serde(default)]
 struct EventuallyConfig {
     cache_zstd: bool,
     cache_temporary: bool,
