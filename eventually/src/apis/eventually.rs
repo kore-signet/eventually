@@ -25,7 +25,6 @@ pub async fn count(
 
     if let Some(after) = req.get_mut("after") {
         if after.parse::<i64>().is_err() {
-            println!("{}", after);
             *after = DateTime::parse_from_rfc3339(after)
                 .unwrap()
                 .timestamp_millis()
@@ -33,7 +32,9 @@ pub async fn count(
         }
     }
 
-    db.run(move |mut c| json_count(&mut c, &schema, &req).map(|v| RocketJson(json!({"count": v}))))
+    db.run(move |c| {
+        json_count(c, &schema, &req).map(|v| RocketJson(json!({ "count": v })))
+    })
     .await
 }
 
@@ -56,7 +57,6 @@ pub async fn search(
 
     if let Some(after) = req.get_mut("after") {
         if after.parse::<i64>().is_err() {
-            println!("{}", after);
             *after = DateTime::parse_from_rfc3339(after)
                 .unwrap()
                 .timestamp_millis()
@@ -77,7 +77,7 @@ pub async fn search(
         .and_then(|c| c.parse::<bool>().ok())
         .unwrap_or(false);
 
-    db.run(move |mut c| match json_search(&mut c, &schema, &req) {
+    db.run(move |c| match json_search(c, &schema, &req) {
         Ok(v) => v
             .into_iter()
             .map(|mut event| {
@@ -88,10 +88,10 @@ pub async fn search(
                         .and_then(|i| i.as_array())
                     {
                         event["metadata"]["children"] = json!(get_by_ids(
-                            &mut c,
+                            c,
                             &schema,
                             &children
-                                .into_iter()
+                                .iter()
                                 .filter_map(|i| i.as_str())
                                 .filter_map(|i| Uuid::parse_str(i).ok())
                                 .collect()
@@ -107,7 +107,7 @@ pub async fn search(
                         .and_then(|i| Uuid::parse_str(i).ok())
                     {
                         event["metadata"]["parent"] =
-                            json!(get_by_ids(&mut c, &schema, &vec![parent])?.first());
+                            json!(get_by_ids(c, &schema, &vec![parent])?.first());
                     }
                 }
 
@@ -118,10 +118,10 @@ pub async fn search(
                         .and_then(|i| i.as_array())
                     {
                         event["metadata"]["_eventually_siblingEvents"] = json!(get_by_ids(
-                            &mut c,
+                            c,
                             &schema,
                             &children
-                                .into_iter()
+                                .iter()
                                 .filter_map(|i| i.as_str())
                                 .filter_map(|i| Uuid::parse_str(i).ok())
                                 .collect()
@@ -132,7 +132,7 @@ pub async fn search(
                 Ok(event)
             })
             .collect::<Result<Vec<JSONValue>, CompassError>>()
-            .map(|v| RocketJson(v)),
+            .map(RocketJson),
         Err(e) => Err(e),
     })
     .await

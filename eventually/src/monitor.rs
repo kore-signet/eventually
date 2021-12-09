@@ -62,7 +62,7 @@ fn ingest_from_url(
         .query(&parameters)
         .send()
         .and_then(|r| r.json::<Vec<JSONValue>>())?;
-    if events.len() < 1 {
+    if events.is_empty() {
         info!("got no events from source {}", source);
         return Ok(None);
     }
@@ -86,7 +86,7 @@ fn poll_redacted(db: &mut DBClient, client: &reqwest::blocking::Client) -> anyho
 
         ingest_from_url(
             db,
-            &client,
+            client,
             "blaseball.com",
             "https://api.blaseball.com/database/feed/global",
             vec![
@@ -228,7 +228,7 @@ fn ingest(
                         "SELECT true AS existed FROM versions WHERE doc_id = $1 AND (((object::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}') @> ((($2::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}') AND (((object::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}') <@ ((($2::jsonb #- '{metadata,scales}') #- '{nuts}') #- '{metadata,_eventually_ingest_time}')",                    &[&id, &e]
             ).unwrap();
 
-            if changed_r.len() < 1 {
+            if changed_r.is_empty() {
                 debug!("Found changed event {:?}", id);
                 if let Some(old_e) = possible_old_event {
                     let insert_statement = trans.prepare(

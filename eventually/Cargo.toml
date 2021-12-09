@@ -12,6 +12,11 @@ log = "0.4"
 futures-util = "0.3"
 env_logger = "0.8.3"
 anyhow = "1.0"
+thiserror = "1"
+
+[dependencies.sled]
+version = "0.34"
+features = ["compression"]
 
 [dependencies.postgres]
 version = "0.19.1"
@@ -38,7 +43,7 @@ branch = "main"
 [dependencies.rocket]
 git = "https://github.com/SergioBenitez/Rocket"
 branch = "master"
-features = ["json"]
+features = ["json","uuid"]
 
 [dependencies.rocket_sync_db_pools]
 git = "https://github.com/SergioBenitez/Rocket"
@@ -46,6 +51,7 @@ branch = "master"
 version = "0.1.0-dev"
 default-features = false
 features = ["postgres_pool"]
+
 [dependencies.reqwest]
 version = "0.11"
 features = ["json","blocking"]

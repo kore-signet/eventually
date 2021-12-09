@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JSONValue;
+use sled::Db as SledDB;
 
-use rocket::get;
-use rocket::serde::json::Json as RocketJson;
+use rocket::{get, State};
+use rocket::serde::{uuid::Uuid, json::Json as RocketJson};
 
 use futures_util::{pin_mut, StreamExt};
 
@@ -72,6 +73,8 @@ pub struct GameUpdate {
     state: Option<JSONValue>,
     #[serde(skip_serializing)]
     play_count: i64,
+    #[serde(skip_serializing)]
+    game_complete: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -93,7 +96,7 @@ pub struct FeedEvent {
     nuts: Option<i64>,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Packet {
     play_count: i64,
@@ -120,15 +123,31 @@ struct Pallet {
 #[get("/packets?<id>")]
 pub async fn get_packets(
     db: CompassConn,
-    id: String,
+    cache: &State<SledDB>,
+    id: Uuid,
     schema: Schema,
-) -> Result<RocketJson<Vec<Packet>>, CompassError> {
+) -> Result<RocketJson<Vec<Packet>>, EventuallyError> {
+    if let Some(packet_bytes) = cache.get(&id.as_bytes())? {
+        let packets = serde_json::from_slice(&packet_bytes)?;
+        Ok(RocketJson(packets))
+    } else {
+        gen_packets(db,cache,id,schema).await.map(RocketJson)
+    }
+}
+
+pub async fn gen_packets(
+    db: CompassConn,
+    cache: &SledDB,
+    id: Uuid,
+    schema: Schema,
+) -> Result<Vec<Packet>, EventuallyError> {
     let mut pallets: HashMap<i64, Pallet> = HashMap::new();
-    let game = id.clone();
+    let game = format!("{}",id.to_hyphenated_ref());
+
     for event in db
-        .run(move |mut c| {
+        .run(move |c| {
             json_search(
-                &mut c,
+                c,
                 &schema,
                 &(vec![
                     ("gameTags".to_owned(), game),
@@ -156,7 +175,7 @@ pub async fn get_packets(
     let client = reqwest::Client::default();
 
     let req: v1::GameUpdatesRequest = v1::GameUpdatesRequestBuilder::default()
-        .game(id)
+        .game(format!("{}",id.to_hyphenated_ref()))
         .count(1000usize)
         .build()
         .unwrap();
@@ -168,7 +187,11 @@ pub async fn get_packets(
 
     pin_mut!(s);
 
+    let mut game_over = false;
+
     while let Some(val) = s.next().await {
+        game_over = val.as_ref().ok().and_then(|v| v.data.game_complete).unwrap_or(false);
+
         if let Some(count) = val.as_ref().ok().map(|v| v.data.play_count) {
             let packet = pallets.entry(count - 1).or_insert(Pallet {
                 play_count: count - 1,
@@ -217,7 +240,12 @@ pub async fn get_packets(
         })
         .flatten()
         .collect();
+
     packets.sort_by_key(|v| v.play_count);
 
-    Ok(RocketJson(packets))
+    if game_over {
+        cache.insert(id.as_bytes(), serde_json::to_vec(&packets)?)?;
+    }
+    
+    Ok(packets)
 }

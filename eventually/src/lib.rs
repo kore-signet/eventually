@@ -1,6 +1,7 @@
 use chrono::prelude::*;
 use compass::*;
 use std::collections::HashMap;
+use std::io::Cursor;
 
 use rocket::fairing::{self, Fairing};
 use rocket::{http::Header, http::Status, options, response, Request, Response};
@@ -8,6 +9,9 @@ use rocket::{http::Header, http::Status, options, response, Request, Response};
 use rocket_sync_db_pools::{database, postgres};
 
 use rocket::request::{self, FromRequest, Outcome};
+use rocket::response::Responder;
+
+use thiserror::Error;
 
 mod apis;
 pub use apis::*;
@@ -69,4 +73,25 @@ impl<'r> response::Responder<'r, 'static> for CORS {
 #[options("/<_..>")]
 pub async fn cors_preflight() -> CORS {
     CORS
+}
+
+#[derive(Error, Debug)]
+pub enum EventuallyError {
+    #[error(transparent)]
+    Sled(#[from] sled::Error),
+    #[error(transparent)]
+    Compass(#[from] compass::CompassError),
+    #[error(transparent)]
+    SerdeJSON(#[from] serde_json::Error)
+}
+
+
+impl<'r> Responder<'r, 'static> for EventuallyError {
+    fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {
+        let r_text = format!("{}", self);
+        Response::build()
+            .status(Status::BadRequest)
+            .sized_body(r_text.len(), Cursor::new(r_text))
+            .ok()
+    }
 }
