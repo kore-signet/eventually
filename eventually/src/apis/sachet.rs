@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JSONValue;
 use sled::Db as SledDB;
 
+use rocket::serde::{json::Json as RocketJson, uuid::Uuid};
 use rocket::{get, State};
-use rocket::serde::{uuid::Uuid, json::Json as RocketJson};
 
 use futures_util::{pin_mut, StreamExt};
 
@@ -131,7 +131,7 @@ pub async fn get_packets(
         let packets = serde_json::from_slice(&packet_bytes)?;
         Ok(RocketJson(packets))
     } else {
-        gen_packets(db,cache,id,schema).await.map(RocketJson)
+        gen_packets(db, cache, id, schema).await.map(RocketJson)
     }
 }
 
@@ -142,7 +142,7 @@ pub async fn gen_packets(
     schema: Schema,
 ) -> Result<Vec<Packet>, EventuallyError> {
     let mut pallets: HashMap<i64, Pallet> = HashMap::new();
-    let game = format!("{}",id.to_hyphenated_ref());
+    let game = format!("{}", id.to_hyphenated_ref());
 
     for event in db
         .run(move |c| {
@@ -155,6 +155,7 @@ pub async fn gen_packets(
                 ]
                 .into_iter()
                 .collect::<HashMap<String, String>>()),
+                None,
             )
         })
         .await?
@@ -175,7 +176,7 @@ pub async fn gen_packets(
     let client = reqwest::Client::default();
 
     let req: v1::GameUpdatesRequest = v1::GameUpdatesRequestBuilder::default()
-        .game(format!("{}",id.to_hyphenated_ref()))
+        .game(format!("{}", id.to_hyphenated_ref()))
         .count(1000usize)
         .build()
         .unwrap();
@@ -190,7 +191,11 @@ pub async fn gen_packets(
     let mut game_over = false;
 
     while let Some(val) = s.next().await {
-        game_over = val.as_ref().ok().and_then(|v| v.data.game_complete).unwrap_or(false);
+        game_over = val
+            .as_ref()
+            .ok()
+            .and_then(|v| v.data.game_complete)
+            .unwrap_or(false);
 
         if let Some(count) = val.as_ref().ok().map(|v| v.data.play_count) {
             let packet = pallets.entry(count - 1).or_insert(Pallet {
@@ -246,6 +251,6 @@ pub async fn gen_packets(
     if game_over {
         cache.insert(id.as_bytes(), serde_json::to_vec(&packets)?)?;
     }
-    
+
     Ok(packets)
 }

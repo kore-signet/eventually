@@ -1,9 +1,9 @@
 use compass::*;
 use rocket::{launch, routes};
 use rustventually::*;
+use sled::Db as SledDB;
 use std::fs::File;
 use std::io::Read;
-use sled::Db as SledDB;
 
 //
 // #[get("/sse")]
@@ -25,13 +25,13 @@ use sled::Db as SledDB;
 //     }).await
 // }
 
-#[derive(serde::Deserialize,Debug)]
+#[derive(serde::Deserialize, Debug)]
 #[serde(default)]
 struct EventuallyConfig {
     cache_zstd: bool,
     cache_temporary: bool,
     cache_path: Option<String>,
-    cache_mem_size: Option<u64>
+    cache_mem_size: Option<u64>,
 }
 
 impl Default for EventuallyConfig {
@@ -40,14 +40,16 @@ impl Default for EventuallyConfig {
             cache_zstd: true,
             cache_temporary: true,
             cache_path: None,
-            cache_mem_size: None
+            cache_mem_size: None,
         }
     }
 }
 
 impl EventuallyConfig {
     fn into_db(&self) -> sled::Result<SledDB> {
-        let mut config = sled::Config::default().use_compression(self.cache_zstd).temporary(self.cache_temporary);
+        let mut config = sled::Config::default()
+            .use_compression(self.cache_zstd)
+            .temporary(self.cache_temporary);
         if let Some(ref p) = self.cache_path {
             config = config.path(p);
         }

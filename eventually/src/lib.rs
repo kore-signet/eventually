@@ -82,9 +82,8 @@ pub enum EventuallyError {
     #[error(transparent)]
     Compass(#[from] compass::CompassError),
     #[error(transparent)]
-    SerdeJSON(#[from] serde_json::Error)
+    SerdeJSON(#[from] serde_json::Error),
 }
-
 
 impl<'r> Responder<'r, 'static> for EventuallyError {
     fn respond_to(self, _: &'r Request<'_>) -> response::Result<'static> {

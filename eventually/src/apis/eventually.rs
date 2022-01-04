@@ -32,10 +32,8 @@ pub async fn count(
         }
     }
 
-    db.run(move |c| {
-        json_count(c, &schema, &req).map(|v| RocketJson(json!({ "count": v })))
-    })
-    .await
+    db.run(move |c| json_count(c, &schema, &req).map(|v| RocketJson(json!({ "count": v }))))
+        .await
 }
 
 #[get("/events")]
@@ -77,7 +75,9 @@ pub async fn search(
         .and_then(|c| c.parse::<bool>().ok())
         .unwrap_or(false);
 
-    db.run(move |c| match json_search(c, &schema, &req) {
+    let raw_query = req.remove("raw_query");
+
+    db.run(move |c| match json_search(c, &schema, &req, raw_query) {
         Ok(v) => v
             .into_iter()
             .map(|mut event| {
