@@ -2,3 +2,4 @@
 feed.json
 Cargo.lock
 dev/
+from_blaseball.py

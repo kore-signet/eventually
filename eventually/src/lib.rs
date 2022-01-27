@@ -11,6 +11,8 @@ use rocket_sync_db_pools::{database, postgres};
 use rocket::request::{self, FromRequest, Outcome};
 use rocket::response::Responder;
 
+use rocket::serde::{Deserialize, Serialize};
+
 use thiserror::Error;
 
 mod apis;
@@ -83,6 +85,8 @@ pub enum EventuallyError {
     Compass(#[from] compass::CompassError),
     #[error(transparent)]
     SerdeJSON(#[from] serde_json::Error),
+    #[error("entry not found in time map")]
+    TimeMapEntryNotFound,
 }
 
 impl<'r> Responder<'r, 'static> for EventuallyError {
@@ -93,4 +97,13 @@ impl<'r> Responder<'r, 'static> for EventuallyError {
             .sized_body(r_text.len(), Cursor::new(r_text))
             .ok()
     }
+}
+
+pub type TimeMap = Vec<TimeMapSeason>;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TimeMapSeason {
+    pub lower_bound: DateTime<Utc>,
+    pub higher_bound: DateTime<Utc>,
+    pub days: Vec<(DateTime<Utc>, DateTime<Utc>)>,
 }

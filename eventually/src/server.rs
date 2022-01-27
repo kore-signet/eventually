@@ -87,8 +87,8 @@ fn rocket() -> _ {
                 eventually::count,
                 eventually::distinct_events,
                 eventually::get_versions,
-                eventually::season_day_time_map,
-                eventually::season_time_map,
+                misc::season_day_time_map,
+                misc::season_time_map,
                 cors_preflight
             ],
         )
