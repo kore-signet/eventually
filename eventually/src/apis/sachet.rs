@@ -189,6 +189,7 @@ pub async fn gen_packets(
     pin_mut!(s);
 
     let mut game_over = false;
+    let mut last_time = Utc::now();
 
     while let Some(val) = s.next().await {
         game_over = val
@@ -196,6 +197,10 @@ pub async fn gen_packets(
             .ok()
             .and_then(|v| v.data.game_complete)
             .unwrap_or(false);
+
+        if let Ok(t) = val.as_ref().map(|v| v.timestamp) {
+            last_time = t;
+        }
 
         if let Some(count) = val.as_ref().ok().map(|v| v.data.play_count) {
             let packet = pallets.entry(count - 1).or_insert(Pallet {
@@ -248,7 +253,7 @@ pub async fn gen_packets(
 
     packets.sort_by_key(|v| v.play_count);
 
-    if game_over {
+    if game_over && (Utc::now() - last_time).num_seconds() > 120 {
         cache.insert(id.as_bytes(), serde_json::to_vec(&packets)?)?;
     }
 
