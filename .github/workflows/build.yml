@@ -29,8 +29,8 @@ jobs:
           context: ./eventually
           push: true
           tags: |
-            ghcr.io/alisww/eventually:server
-            ghcr.io/alisww/eventually:${{ github.sha }}
+            ghcr.io/allie-signet/eventually:server
+            ghcr.io/allie-signet/eventually:${{ github.sha }}
       -
         name: Build and push search db
         uses: docker/build-push-action@v2
@@ -38,6 +38,6 @@ jobs:
           context: ./db
           push: true
           tags: |
-            ghcr.io/alisww/eventually:${{ github.sha }}
-            ghcr.io/alisww/eventually:db
+            ghcr.io/allie-signet/eventually:${{ github.sha }}
+            ghcr.io/allie-signet/eventually:db
   
