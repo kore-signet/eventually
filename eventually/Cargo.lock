@@ -214,7 +214,6 @@ dependencies = [
 [[package]]
 name = "compass"
 version = "0.1.0"
-source = "git+https://github.com/alisww/compass?branch=main#62100aca6dbbacf61b295e88584a6622685d709e"
 dependencies = [
  "chrono",
  "futures",
@@ -1502,7 +1501,7 @@ dependencies = [
 [[package]]
 name = "rocket"
 version = "0.5.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket?branch=master#8825f936efcf05d1b8382fcdb2d528ff7c3ff933"
+source = "git+https://github.com/SergioBenitez/Rocket?branch=master#91e3b4397a1637d0f55f23db712cf7bda0c7f891"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -1541,7 +1540,7 @@ dependencies = [
 [[package]]
 name = "rocket_codegen"
 version = "0.5.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket?branch=master#8825f936efcf05d1b8382fcdb2d528ff7c3ff933"
+source = "git+https://github.com/SergioBenitez/Rocket?branch=master#91e3b4397a1637d0f55f23db712cf7bda0c7f891"
 dependencies = [
  "devise",
  "glob",
@@ -1556,7 +1555,7 @@ dependencies = [
 [[package]]
 name = "rocket_http"
 version = "0.5.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket?branch=master#8825f936efcf05d1b8382fcdb2d528ff7c3ff933"
+source = "git+https://github.com/SergioBenitez/Rocket?branch=master#91e3b4397a1637d0f55f23db712cf7bda0c7f891"
 dependencies = [
  "cookie",
  "either",
@@ -1582,7 +1581,7 @@ dependencies = [
 [[package]]
 name = "rocket_sync_db_pools"
 version = "0.1.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket?branch=master#8825f936efcf05d1b8382fcdb2d528ff7c3ff933"
+source = "git+https://github.com/SergioBenitez/Rocket?branch=master#91e3b4397a1637d0f55f23db712cf7bda0c7f891"
 dependencies = [
  "postgres",
  "r2d2",
@@ -1596,7 +1595,7 @@ dependencies = [
 [[package]]
 name = "rocket_sync_db_pools_codegen"
 version = "0.1.0-rc.1"
-source = "git+https://github.com/SergioBenitez/Rocket?branch=master#8825f936efcf05d1b8382fcdb2d528ff7c3ff933"
+source = "git+https://github.com/SergioBenitez/Rocket?branch=master#91e3b4397a1637d0f55f23db712cf7bda0c7f891"
 dependencies = [
  "devise",
  "quote",
